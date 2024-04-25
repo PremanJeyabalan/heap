@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -Wextra -Werror -std=c11 -pedantic -ggdb
+CFLAGS=-Wall -fPIC -Wextra -Werror -pedantic -ggdb
 
 heap: main.c 
 	$(CC) $(CFLAGS) -o  heap main.c 
