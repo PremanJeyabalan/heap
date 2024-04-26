@@ -6,14 +6,14 @@
 #define BLOCK_SIZE 16
 
 struct HeaderBlock {
-    uint size_free_pack;
+    uint32_t size_free_pack;
     struct HeaderBlock* next;
     struct HeaderBlock* prev;
 };
 
 typedef struct HeaderBlock HeaderBlock;
 #define FREE_HEADER_SIZE (sizeof(HeaderBlock))
-#define ALLOC_HEADER_SIZE (sizeof(uint))
+#define ALLOC_HEADER_SIZE (sizeof(uint32_t))
 
 size_t get_size(const HeaderBlock* block) {
     return block->size_free_pack & 0xFFFFFFF8;
@@ -39,6 +39,14 @@ void make_block(HeaderBlock* block, size_t size, bool free, HeaderBlock* next, H
         set_free(block, next, prev);
     else
         block->size_free_pack = get_size(block);
+}
+
+void remove_from_list(HeaderBlock* block) {
+    if (block->prev != NULL)
+        block->prev->next = block->next;
+
+    if (block->next != NULL)
+        block->next->prev = block->prev;
 }
 
 void print_block(const HeaderBlock* block) {

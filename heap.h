@@ -42,6 +42,7 @@ void print_heap() {
             return;
         curr += get_size(curr);
     }
+    printf("-----------------------------\n");
 }
 
 void print_heap_free_blocks() {
@@ -52,29 +53,39 @@ void print_heap_free_blocks() {
     }
 }
 
-void* ff_malloc(size_t bytes) {
-    HeaderBlock* curr = (HeaderBlock*) heap.memory;
-    HeaderBlock* end = curr + heap.capacity;
-    size_t alignedSize = GET_ALIGNED_SIZE(bytes + ALLOC_HEADER_SIZE);
-    printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
-    while (curr < end) {
-        if (get_free(curr)
-            && get_size(curr) >= alignedSize
-        ) {
-            size_t remFreeSize = get_size(curr) - alignedSize;
-            if (remFreeSize > FREE_HEADER_SIZE)
-                make_block(curr + alignedSize, remFreeSize, true, curr->next, curr->prev);
+HeaderBlock* ff_find_fit(size_t size) {
+    HeaderBlock* curr = heap.freeList;
+    while (curr != NULL) {
+        if (get_size(curr) >= size)
+            return curr;
 
-            make_block(curr, alignedSize, false, NULL, NULL);
-            heap.size += alignedSize;
-            return (void*)(curr+ALLOC_HEADER_SIZE);
-        }
-
-        curr += get_size(curr);
+        curr = curr->next;
     }
 
-    printf("Couldn't find any space to allocate %ld bytes aligned to %ld bytes\n", bytes, alignedSize);
-    return (void*)-1;
+    return NULL;
+}
+
+void* ff_malloc(size_t bytes) {
+    size_t alignedSize = GET_ALIGNED_SIZE(bytes + ALLOC_HEADER_SIZE);
+    printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
+
+    HeaderBlock* victim = ff_find_fit(alignedSize);
+
+    if (victim == NULL) {
+        printf("[UNIMPLEMENTED] Expand Heap!\n");
+        exit(1);
+    }
+
+    size_t startOffset = get_size(victim) - alignedSize;
+    HeaderBlock* curr = victim + startOffset;
+    if (startOffset == 0) 
+        remove_from_list(victim);
+    else 
+        set_size(victim, startOffset);
+
+    make_block(curr, alignedSize, false, NULL, NULL);
+    heap.size += alignedSize;
+    return (void*)(curr+ALLOC_HEADER_SIZE);
 }
 
 void ff_free(void* ptr) {
