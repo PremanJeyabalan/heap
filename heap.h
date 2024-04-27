@@ -1,10 +1,13 @@
 
+#ifndef HEAP_H
+#define HEAP_H
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 
 #include "hblock.h"
+#include "flist.h"
 
 #define DWORD_SIZE 8
 #define GET_ALIGNED_SIZE(x) ((((x) - 1) | 15) + 1)
@@ -14,39 +17,64 @@ typedef struct {
     void* memory;
     size_t size;
     size_t capacity;
-    HeaderBlock* freeList;
+    FreeList freeList;
 } Heap;
+
 
 static Heap heap;
 
-void make_heap(size_t bytes) {
-    if ((heap.memory = sbrk(FREE_HEADER_SIZE + bytes)) == (void*) -1) {
-        printf("Failed to allocated: %ld bytes to the heap\n", bytes);
+void* reserve_heap(size_t bytes) {
+    void* top;
+    if ((top = sbrk(bytes)) == (void*)-1) {
+        printf("[ERROR] Failed to allocated: %ld bytes to the heap\n", bytes);
         exit(1);
     }
 
+    heap.capacity += bytes;
+    return top;
+}
+
+void make_heap(size_t bytes) {
+    size_t alignedCapacity = GET_ALIGNED_SIZE(FREE_HEADER_SIZE + bytes);
+    heap.memory = reserve_heap(alignedCapacity);
     heap.size = 0;
-    heap.capacity = bytes;
-    heap.freeList = (HeaderBlock*) heap.memory;
-    make_block(heap.freeList, bytes, true, NULL, NULL);
+    list_init(&heap.freeList, heap.memory, heap.capacity);
 }
 
 void print_heap() {
     printf("--- Current Memory State ---\n");
+    // printf("[STATS]");
     printf("[REGION %p]\n", heap.memory); 
     HeaderBlock* curr = (HeaderBlock*) heap.memory;
     HeaderBlock* end = curr + heap.capacity;
     while (curr < end) {
         print_block(curr);
         if (get_size(curr) == 0)
-            return;
+            break;
         curr += get_size(curr);
     }
+    list_print(&heap.freeList);
     printf("-----------------------------\n");
 }
 
+HeaderBlock* expand_heap(size_t bytes) {
+    size_t incrCap = GET_ALIGNED_SIZE(bytes);
+    void* next = reserve_heap(incrCap); 
+    HeaderBlock* res;
+    if (heap.freeList.tail == NULL || get_end_addr_block(heap.freeList.tail) < next) {
+        res = list_append(&heap.freeList, next, incrCap);
+    } else {
+        expand_block(heap.freeList.tail, incrCap);
+        res = heap.freeList.tail;
+    }
+
+    print_heap();
+    return res;
+}
+
+
 void print_heap_free_blocks() {
-    HeaderBlock* curr = heap.freeList;
+    HeaderBlock* curr = heap.freeList.head;
     while (curr != NULL) {
         print_block(curr);
         curr = curr->next;
@@ -54,7 +82,7 @@ void print_heap_free_blocks() {
 }
 
 HeaderBlock* ff_find_fit(size_t size) {
-    HeaderBlock* curr = heap.freeList;
+    HeaderBlock* curr = heap.freeList.head;
     while (curr != NULL) {
         if (get_size(curr) >= size)
             return curr;
@@ -72,14 +100,14 @@ void* ff_malloc(size_t bytes) {
     HeaderBlock* victim = ff_find_fit(alignedSize);
 
     if (victim == NULL) {
-        printf("[UNIMPLEMENTED] Expand Heap!\n");
-        exit(1);
+        printf("[INFO] Ran out of space.. expanding heap by %ld\n", alignedSize*2);
+        victim = expand_heap(alignedSize*2);
     }
 
     size_t startOffset = get_size(victim) - alignedSize;
     HeaderBlock* curr = victim + startOffset;
     if (startOffset == 0) 
-        remove_from_list(victim);
+       list_remove(&heap.freeList, victim); 
     else 
         set_size(victim, startOffset);
 
@@ -93,3 +121,5 @@ void ff_free(void* ptr) {
 
     
 }
+
+#endif

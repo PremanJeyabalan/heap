@@ -1,3 +1,6 @@
+#ifndef HEADER_BLOCK_H
+#define HEADER_BLOCK_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -23,6 +26,10 @@ bool get_free(const HeaderBlock* block) {
     return block->size_free_pack & 0x01;
 }
 
+void* get_end_addr_block(const HeaderBlock* block) {
+    return (void*)(block + get_size(block));
+}
+
 void set_size(HeaderBlock* block, size_t size) {
     block->size_free_pack = size | get_free(block);    
 }
@@ -41,12 +48,9 @@ void make_block(HeaderBlock* block, size_t size, bool free, HeaderBlock* next, H
         block->size_free_pack = get_size(block);
 }
 
-void remove_from_list(HeaderBlock* block) {
-    if (block->prev != NULL)
-        block->prev->next = block->next;
-
-    if (block->next != NULL)
-        block->next->prev = block->prev;
+void expand_block(HeaderBlock* block, size_t increment) {
+    size_t newSize = get_size(block) + increment;
+    set_size(block, newSize);
 }
 
 void print_block(const HeaderBlock* block) {
@@ -54,3 +58,5 @@ void print_block(const HeaderBlock* block) {
     printf("  [BLOCK %p-%p] %ld\t[%s]\n", 
         (void*)block, (void*)end, get_size(block), get_free(block) ? "FREE" : "USED");
 }
+
+#endif
