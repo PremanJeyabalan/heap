@@ -23,7 +23,7 @@ HeaderBlock* list_append(FreeList* list, void* memory, size_t size) {
         return list->head;
     }
 
-    HeaderBlock* next = list->tail + get_size(list->tail);
+    HeaderBlock* next = get_end_addr_block(list->tail);
     make_block(next, size, true, NULL, list->tail);
     list->tail->next = next;
     list->tail = list->tail->next;

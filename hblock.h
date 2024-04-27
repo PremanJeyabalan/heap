@@ -27,7 +27,7 @@ bool get_free(const HeaderBlock* block) {
 }
 
 void* get_end_addr_block(const HeaderBlock* block) {
-    return (void*)(block + get_size(block));
+    return (void*)((const char*)block + get_size(block));
 }
 
 void set_size(HeaderBlock* block, size_t size) {
@@ -54,7 +54,7 @@ void expand_block(HeaderBlock* block, size_t increment) {
 }
 
 void print_block(const HeaderBlock* block) {
-    const HeaderBlock* end = block + get_size(block);
+    void* end = get_end_addr_block(block);
     printf("  [BLOCK %p-%p] %ld\t[%s]\n", 
         (void*)block, (void*)end, get_size(block), get_free(block) ? "FREE" : "USED");
 }
