@@ -1,7 +1,7 @@
 #include <string.h>
+#include <unistd.h>
 
 #include "heap.h"
-#include <unistd.h>
 
 #define ALLOCS 12
 
