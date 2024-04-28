@@ -23,3 +23,7 @@ void* mem_sbrk(size_t increment) {
     mem_brk += increment;
     return (void*) old;
 }
+
+void mem_cleanup() {
+    free(mem_heap);
+}

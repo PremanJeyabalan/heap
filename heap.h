@@ -19,6 +19,7 @@ typedef struct {
 void* ff_malloc(size_t bytes);
 void ff_free(void* ptr);
 void make_heap(size_t bytes);
+void collect_heap();
 void print_heap();
 
 #endif

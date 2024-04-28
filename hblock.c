@@ -12,6 +12,10 @@ void* get_end_addr_block(const HeaderBlock* block) {
     return (void*)((const char*)block + get_size(block));
 }
 
+void* get_start_addr_block_from_data(void* ptr) {
+    return (void*)((char*)ptr - ALLOC_HEADER_SIZE);
+}
+
 void set_size(HeaderBlock* block, size_t size) {
     block->size_free_pack = size | get_free(block);    
 }

@@ -14,19 +14,30 @@ int main() {
 
     ptrs[0] = "A";
     for (int i = 1; i < ALLOCS; i++) {
-        printf("Index: %d\n", i);
+        printf("Malloc Index: %d\n", i);
         ptrs[i] = ff_malloc(i+1);
-        print_heap();
     }
 
-    printf("%lu PAGE SIZE\n", sysconf(_SC_PAGE_SIZE));
 
-    // printf("")
-    // void* currsbrk = sbrk(0);
-    // void* nextsbrk = sbrk(16);
-    // void* newsbrk = sbrk(0);
-    // printf("curr sbrk: %p , curr sbrk: %p , curr sbrk: %p\n", currsbrk, nextsbrk, newsbrk);
+    print_heap();
 
+    for (int i = 1; i < ALLOCS; i++) {
+        if (i % 2 == 1) {
+            printf("Free Index: %d\n", i);
+            ff_free(ptrs[i]);
+            print_heap();
+        }
+    }
+
+    for (int i = 1; i < ALLOCS; i++) {
+        if (i % 2 == 0) {
+            printf("Free Index: %d\n", i);
+            ff_free(ptrs[i]);
+            print_heap();
+        }
+    }
+
+    collect_heap();
 
     return 0;
 }

@@ -22,6 +22,7 @@ typedef struct HeaderBlock HeaderBlock;
 size_t get_size(const HeaderBlock* block);
 bool get_free(const HeaderBlock* block);
 void* get_end_addr_block(const HeaderBlock* block);
+void* get_start_addr_block_from_data(void* ptr);
 void set_size(HeaderBlock* block, size_t size);
 void set_free(HeaderBlock* block, HeaderBlock* next, HeaderBlock* prev);
 void make_block(HeaderBlock* block, size_t size, bool free, HeaderBlock* next, HeaderBlock* prev);

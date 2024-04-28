@@ -45,8 +45,8 @@ static HeaderBlock* ff_find_fit(size_t size) {
 }
 
 void* ff_malloc(size_t bytes) {
-    size_t alignedSize = GET_ALIGED_SIZE_16(bytes + ALLOC_HEADER_SIZE);
-    printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
+    size_t alignedSize = GET_ALIGED_SIZE_16(bytes + FREE_HEADER_SIZE);
+    // printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
 
     HeaderBlock* victim = ff_find_fit(alignedSize);
 
@@ -64,13 +64,17 @@ void* ff_malloc(size_t bytes) {
 
     make_block(curr, alignedSize, false, NULL, NULL);
     heap.size += alignedSize;
-    return (void*)(curr+ALLOC_HEADER_SIZE);
+    return (void*)((char*)(curr)+ALLOC_HEADER_SIZE);
 }
 
 void ff_free(void* ptr) {
-    printf("Trying to free ptr %p bytes...\n", ptr);
+    HeaderBlock* block = get_start_addr_block_from_data(ptr);
+    // printf("[FREE] Free block: %p\n", (void*)block);
+    size_t size = get_size(block);
+    make_block(block, size, true, NULL, NULL);
 
-    
+    list_insert_and_coalesce(&heap.freeList, block);
+    heap.size -= size;
 }
 
 void make_heap(size_t bytes) {
@@ -79,6 +83,10 @@ void make_heap(size_t bytes) {
     heap.memory = reserve_heap(alignedCapacity);
     heap.size = 0;
     list_init(&heap.freeList, heap.memory, heap.capacity);
+}
+
+void collect_heap() {
+    mem_cleanup();
 }
 
 void print_heap() {

@@ -6,5 +6,6 @@
 
 void mem_init();
 void* mem_sbrk(size_t increment);
+void mem_cleanup();
 
 #endif
