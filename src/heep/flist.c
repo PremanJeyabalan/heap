@@ -7,17 +7,17 @@ void list_init(FreeList* list, void* memory, size_t size) {
     list->size = size;
 }
 
-HeaderBlock* list_append(FreeList* list, void* memory, size_t size) {
-    if (list->head == NULL) {
-        list_init(list, memory, size);
+HeaderBlock* list_append(FreeList* list, void* start, size_t size) {
+    if (list->head == NULL || list->size == 0) {
+        list_init(list, start, size);
         return list->head;
     }
 
-    HeaderBlock* next = get_end_addr_block(list->tail);
+    HeaderBlock* next = (HeaderBlock*) start;
     make_block(next, size, true, NULL, list->tail);
     list->tail->next = next;
     list->tail = list->tail->next;
-    size += get_size(next);
+    list->size += get_size(next);
     return list->tail;
 }
 
@@ -31,6 +31,7 @@ void list_pop_front(FreeList* list) {
     }
 
     list->head = list->head->next;
+    list->head->prev = NULL;
 }
 
 void list_pop_back(FreeList* list) {
@@ -57,11 +58,12 @@ void list_remove(FreeList* list, HeaderBlock* block) {
         return;
     }
 
+    list->size -= get_size(block);
     block->prev->next = block->next;
     block->next->prev = block->prev;
 }
 
-static HeaderBlock* list_find_prev(FreeList* list, void* block) {
+static HeaderBlock* list_find_prev(FreeList* list, const void* block) {
     void* curr = (void*)list->head;
     if ((void*)list->tail < block) {
         // printf("[FREE] Tail: %p is smaller than block %p\n", (void*)list->tail, block);
