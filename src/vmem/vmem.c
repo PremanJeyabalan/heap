@@ -26,4 +26,7 @@ void* mem_sbrk(size_t increment) {
 
 void mem_cleanup() {
     free(mem_heap);
+    mem_heap = NULL;
+    mem_brk = NULL;
+    mem_max_addr = NULL;
 }

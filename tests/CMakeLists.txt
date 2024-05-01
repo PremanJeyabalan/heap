@@ -18,3 +18,10 @@ target_link_libraries(flist_test
         PUBLIC heep)
 add_test(NAME flist_test
         COMMAND $<TARGET_FILE:flist_test>)
+
+add_executable(heap_test
+        heap_test.c)
+target_link_libraries(heap_test
+        PUBLIC heep)
+add_test(NAME heap_test
+        COMMAND $<TARGET_FILE:heap_test>)

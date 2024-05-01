@@ -18,7 +18,7 @@ static void* reserve_heap(size_t bytes) {
 }
 
 static HeaderBlock* expand_heap(size_t bytes) {
-    size_t incrCap = GET_ALIGNED_SIZE_16(bytes);
+    size_t incrCap = bytes > 16 ? GET_ALIGNED_SIZE_16(bytes) : 32;
     void* next = reserve_heap(incrCap); 
     HeaderBlock* res;
     if (heap.freeList.tail == NULL || get_end_addr_block(heap.freeList.tail) < next) {
@@ -26,6 +26,7 @@ static HeaderBlock* expand_heap(size_t bytes) {
         res = list_append(&heap.freeList, next, incrCap);
     } else {
         expand_block(heap.freeList.tail, incrCap);
+        heap.freeList.size += incrCap;
         res = heap.freeList.tail;
     }
 
@@ -36,7 +37,8 @@ static HeaderBlock* expand_heap(size_t bytes) {
 static HeaderBlock* ff_find_fit(size_t size) {
     HeaderBlock* curr = heap.freeList.head;
     while (curr != NULL) {
-        if (get_size(curr) >= size)
+        size_t currSize = get_size(curr);
+        if ((currSize == size) || (currSize > size && currSize - size >= 32))
             return curr;
 
         curr = curr->next;
@@ -60,8 +62,10 @@ void* ff_malloc(size_t bytes) {
     HeaderBlock* curr = (HeaderBlock*)((char*) victim + startOffset);
     if (startOffset == 0) 
        list_remove(&heap.freeList, victim); 
-    else 
+    else {
         set_size(victim, startOffset);
+        heap.freeList.size -= alignedSize;
+    }
 
     make_block(curr, alignedSize, false, NULL, NULL);
     heap.size += alignedSize;
@@ -88,6 +92,12 @@ void make_heap(size_t bytes) {
 
 void collect_heap() {
     mem_cleanup();
+    heap.memory = NULL;
+    heap.size = 0;
+    heap.capacity = 0;
+    heap.freeList.size = 0;
+    heap.freeList.head = NULL;
+    heap.freeList.tail =  NULL;
 }
 
 void print_heap() {
