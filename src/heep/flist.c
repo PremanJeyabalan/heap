@@ -81,8 +81,7 @@ static HBlock* list_find_prev(FreeList* list, const void* block) {
 }
 
 static void list_coalesce(FreeList* list, HBlock* block, HBlock* prev, HBlock* next) {
-    size_t coalesceState = 0;
-    coalesceState |= (size_t)(prev && (block_get_end_addr(prev) == (void*) block));
+    size_t coalesceState = (size_t)(prev && (block_get_end_addr(prev) == (void*) block));
     coalesceState <<= 1;
     coalesceState |= (size_t)(next && (block_get_end_addr(block) == (void*) next));
     // printf("[FREE] Coalesce state: %lu\n", coalesceState);

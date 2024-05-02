@@ -5,11 +5,10 @@
 #ifndef HBENCH_H
 #define HBENCH_H
 
-#include <time.h>
 
 struct Duration {
-    struct timespec startTime;
-    struct timespec endTime;
+    int k;
+    int l;
 };
 
 #endif

@@ -3,9 +3,7 @@
 #include "heep/heap.h"
 #include "vmem/vmem.h"
 
-#define GET_ALIGNED_SIZE_16(x) ((((x) - 1) | 15) + 1)
 #define GET_ALIGNED_SIZE_PAGE(x) ((((x) - 1) | (PAGE_SIZE-1)) + 1)
-#define GET_ALIGNED_BLOCK(x) (GET_ALIGNED_SIZE_16((x)+FREE_HEADER_SIZE))
 
 #ifdef FIRST_FIT_FIND
 #define FINDER(x) ff_find_fit(x)
@@ -20,6 +18,8 @@ static void* reserve_heap(size_t bytes) {
     void* top;
     if ((top = mem_sbrk(bytes)) == (void*)-1) {
         printf("[ERROR] Failed to allocate: %ld bytes to the heap\n", bytes);
+        heap_print();
+        heap_collect();
         exit(1);
     }
 
@@ -28,8 +28,9 @@ static void* reserve_heap(size_t bytes) {
 }
 
 static HBlock* expand_heap(size_t bytes) {
-    size_t incrCap = bytes > 16 ? GET_ALIGNED_SIZE_16(bytes) : 32;
-    void* next = reserve_heap(incrCap); 
+//    size_t incrCap = bytes > 16 ? GET_ALIGNED_SIZE_16(bytes) : 32;
+    size_t incrCap = heap.capacity;
+    void* next = reserve_heap(incrCap);
     HBlock* res;
     if (heap.freeList.tail == NULL || block_get_end_addr(heap.freeList.tail) < next) {
         // printf("[INFO] Trying append at address: %p\n", next);
@@ -60,13 +61,15 @@ static HBlock* ff_find_fit(size_t size) {
 static HBlock* bf_find_fit(size_t size) {
     HBlock* curr = heap.freeList.head;
     HBlock* res = NULL;
+    size_t resSize = 0;
     while (curr != NULL) {
         size_t currSize = block_get_size(curr);
-        if (
-                ((currSize == size) || (currSize > size && currSize - size >= 32)) &&
-                (res == NULL || currSize < block_get_size(res))) {
+        if (currSize > size && (res == NULL || currSize < resSize)) {
             res = curr;
-        }
+            resSize = currSize;
+        } else if (currSize == size)
+            return curr;
+
 
         curr = curr->next;
     }
@@ -76,13 +79,13 @@ static HBlock* bf_find_fit(size_t size) {
 
 void* heap_malloc(size_t bytes) {
     size_t alignedSize = GET_ALIGNED_BLOCK(bytes);
-    // printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
+//     printf("[ALLOC] req size: %ld aligned size: %ld\n", bytes, alignedSize);
 
     HBlock* victim = FINDER(alignedSize);
 
     if (victim == NULL) {
-        // printf("[INFO] Ran out of space.. expanding heap by %lu\n", alignedSize*2);
-        victim = expand_heap(alignedSize*2);
+//         printf("[INFO] Ran out of space.. size: %lu capacity: %lu expanding heap by %lu\n", heap.size, heap.capacity, alignedSize);
+        victim = expand_heap(alignedSize);
     }
 
     size_t startOffset = block_get_size(victim) - alignedSize;
@@ -111,7 +114,7 @@ void heap_free(void* ptr) {
 
 void heap_init(size_t bytes) {
     mem_init();
-    size_t alignedCapacity = GET_ALIGNED_BLOCK(bytes);
+    size_t alignedCapacity = bytes < 32 ? GET_ALIGNED_BLOCK(bytes) : GET_ALIGNED_SIZE_16(bytes);
     heap.memory = reserve_heap(alignedCapacity);
     heap.size = 0;
     list_init(&heap.freeList, heap.memory, heap.capacity);
@@ -133,18 +136,31 @@ void heap_collect() {
     heap.freeList.tail =  NULL;
 }
 
+size_t heap_get_size() {
+    return heap.size;
+}
+
+size_t heap_get_capacity() {
+    return heap.capacity;
+}
+
+size_t heap_get_free_size() {
+    return heap.freeList.size;
+}
+
 void heap_print() {
     printf("--- Current Memory State ---\n");
-    // printf("[STATS]");
-    printf("[REGION %p]\n", heap.memory); 
-    void* curr = heap.memory;
-    void* end = (char*)curr + heap.capacity;
-    while (curr < end) {
-        block_print(curr);
-        if (block_get_size(curr) == 0)
-            break;
-        curr = block_get_end_addr((HBlock *) curr);
-    }
-    list_print(&heap.freeList);
+     printf("[STATS]");
+    printf("Size: %lu Capacity: %lu Free Space: %lu\n", heap_get_size(), heap_get_capacity(), heap_get_free_size());
+//    printf("[REGION %p]\n", heap.memory);
+//    void* curr = heap.memory;
+//    void* end = (char*)curr + heap.capacity;
+//    while (curr < end) {
+//        block_print(curr);
+//        if (block_get_size(curr) == 0)
+//            break;
+//        curr = block_get_end_addr((HBlock *) curr);
+//    }
+//    list_print(&heap.freeList);
     printf("-----------------------------\n");
 }
