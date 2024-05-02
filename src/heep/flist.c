@@ -1,29 +1,29 @@
 #include "heep/flist.h"
 
 void list_init(FreeList* list, void* memory, size_t size) {
-    list->head = (HeaderBlock*) memory;
-    make_block(list->head, size, true, NULL, NULL);
+    list->head = (HBlock*) memory;
+    block_init(list->head, size, true, NULL, NULL);
     list->tail = list->head;
     list->size = size;
 }
 
-HeaderBlock* list_append(FreeList* list, void* start, size_t size) {
+HBlock* list_append(FreeList* list, void* start, size_t size) {
     if (list->head == NULL || list->size == 0) {
         list_init(list, start, size);
         return list->head;
     }
 
-    HeaderBlock* next = (HeaderBlock*) start;
-    make_block(next, size, true, NULL, list->tail);
+    HBlock* next = (HBlock*) start;
+    block_init(next, size, true, NULL, list->tail);
     list->tail->next = next;
     list->tail = list->tail->next;
-    list->size += get_size(next);
+    list->size += block_get_size(next);
     return list->tail;
 }
 
 void list_pop_front(FreeList* list) {
-    HeaderBlock* head = list->head;
-    list->size -= get_size(head);
+    HBlock* head = list->head;
+    list->size -= block_get_size(head);
     if (head->next == NULL) {
         list->head = NULL;
         list->tail = NULL;
@@ -35,8 +35,8 @@ void list_pop_front(FreeList* list) {
 }
 
 void list_pop_back(FreeList* list) {
-    HeaderBlock* tail = list->tail;
-    list->size -= get_size(tail);
+    HBlock* tail = list->tail;
+    list->size -= block_get_size(tail);
     if (list->tail == list->head) {
         list->head = NULL;
         list->tail = NULL;
@@ -47,7 +47,7 @@ void list_pop_back(FreeList* list) {
     list->tail = list->tail->prev;
 }
 
-void list_remove(FreeList* list, HeaderBlock* block) {
+void list_remove(FreeList* list, HBlock* block) {
     if (block == list->head)  {
         list_pop_front(list);
         return;
@@ -58,38 +58,38 @@ void list_remove(FreeList* list, HeaderBlock* block) {
         return;
     }
 
-    list->size -= get_size(block);
+    list->size -= block_get_size(block);
     block->prev->next = block->next;
     block->next->prev = block->prev;
 }
 
-static HeaderBlock* list_find_prev(FreeList* list, const void* block) {
+static HBlock* list_find_prev(FreeList* list, const void* block) {
     void* curr = (void*)list->head;
     if ((void*)list->tail < block) {
         // printf("[FREE] Tail: %p is smaller than block %p\n", (void*)list->tail, block);
-        return ((HeaderBlock*) list->tail);
+        return ((HBlock*) list->tail);
     }
 
     while (curr != NULL) {
         if (curr > block)
-            return ((HeaderBlock*) curr)->prev;
+            return ((HBlock*) curr)->prev;
 
-        curr = (void*) ((HeaderBlock*) curr)->next;
+        curr = (void*) ((HBlock*) curr)->next;
     }
     
     return NULL;
 }
 
-static void list_coalesce(FreeList* list, HeaderBlock* block, HeaderBlock* prev, HeaderBlock* next) {
+static void list_coalesce(FreeList* list, HBlock* block, HBlock* prev, HBlock* next) {
     size_t coalesceState = 0;
-    coalesceState |= (size_t)(prev && (get_end_addr_block(prev) == (void*) block));
+    coalesceState |= (size_t)(prev && (block_get_end_addr(prev) == (void*) block));
     coalesceState <<= 1;
-    coalesceState |= (size_t)(next && (get_end_addr_block(block) == (void*) next));
+    coalesceState |= (size_t)(next && (block_get_end_addr(block) == (void*) next));
     // printf("[FREE] Coalesce state: %lu\n", coalesceState);
 
     switch (coalesceState) {
         case 0:
-            make_block(block, get_size(block), true, next, prev);
+            block_init(block, block_get_size(block), true, next, prev);
             if (prev)
                 prev->next = block;
             else 
@@ -104,13 +104,13 @@ static void list_coalesce(FreeList* list, HeaderBlock* block, HeaderBlock* prev,
 
         case 1: {
             size_t nextSize = 0;
-            HeaderBlock* newNext = NULL;
+            HBlock* newNext = NULL;
             if (next) {
-                nextSize = get_size(next);
+                nextSize = block_get_size(next);
                 newNext = next->next;
             }
 
-            make_block(block, get_size(block) + nextSize, true, newNext, prev);
+            block_init(block, block_get_size(block) + nextSize, true, newNext, prev);
             if (prev)
                 prev->next = block;
             else 
@@ -125,7 +125,7 @@ static void list_coalesce(FreeList* list, HeaderBlock* block, HeaderBlock* prev,
         }
 
         case 2:
-            make_block(prev, get_size(prev) + get_size(block), true, next, prev->prev);
+            block_init(prev, block_get_size(prev) + block_get_size(block), true, next, prev->prev);
             if (next)
                 next->prev = prev;
             else 
@@ -134,7 +134,8 @@ static void list_coalesce(FreeList* list, HeaderBlock* block, HeaderBlock* prev,
             return;
 
         case 3:
-            make_block(prev, get_size(prev) + get_size(block) + get_size(next), true, next->next, prev->prev);
+            block_init(prev, block_get_size(prev) + block_get_size(block) + block_get_size(next), true, next->next,
+                       prev->prev);
             if (next->next)
                 next->next->prev = prev;
             else
@@ -149,15 +150,15 @@ static void list_coalesce(FreeList* list, HeaderBlock* block, HeaderBlock* prev,
 
 }
 
-void list_insert_and_coalesce(FreeList* list, HeaderBlock* block) {
+void list_insert_and_coalesce(FreeList* list, HBlock* block) {
     if (list->head == NULL) {
-        list_init(list, block, get_size(block));
+        list_init(list, block, block_get_size(block));
         return;
     }
 
-    list->size += get_size(block);
+    list->size += block_get_size(block);
 
-    HeaderBlock* prev = list_find_prev(list, block);
+    HBlock* prev = list_find_prev(list, block);
     if (prev == NULL) {
         // printf("[FREE] Trying to add %p to front of list starting %p\n", (void*) block, (void*) list->head);
         list_coalesce(list, block, NULL, list->head);
@@ -169,10 +170,10 @@ void list_insert_and_coalesce(FreeList* list, HeaderBlock* block) {
 }
 
 void list_print(FreeList* list) {
-    HeaderBlock* curr = list->head;
+    HBlock* curr = list->head;
     printf("--- Free Blocks State ---\n");
     while (curr != NULL) {
-        print_block(curr);
+        block_print(curr);
         curr = curr->next;
     }
 }

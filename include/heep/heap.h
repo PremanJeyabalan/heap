@@ -15,10 +15,10 @@ typedef struct {
     FreeList freeList;
 } Heap;
 
-void* ff_malloc(size_t bytes);
-void ff_free(void* ptr);
-void make_heap(size_t bytes);
-void collect_heap();
-void print_heap();
+void* heap_malloc(size_t bytes);
+void heap_free(void* ptr);
+void heap_init(size_t bytes);
+void heap_collect();
+void heap_print();
 
 #endif

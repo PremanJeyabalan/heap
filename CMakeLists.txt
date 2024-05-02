@@ -7,7 +7,7 @@ project(heep
 set(CMAKE_C_STANDARD 17)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    set(CMAKE_CXX_EXTENSIONS OFF)
+    set(CMAKE_C_EXTENSIONS OFF)
 
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -17,6 +17,8 @@ endif ()
 add_subdirectory(src)
 
 add_subdirectory(apps)
+
+add_subdirectory(benchmarks)
 
 if ((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
     add_subdirectory(tests)

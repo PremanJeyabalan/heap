@@ -13,20 +13,19 @@ struct HeaderBlock {
     struct HeaderBlock* prev;
 };
 
-typedef struct HeaderBlock HeaderBlock;
+typedef struct HeaderBlock HBlock;
 
-#define BLOCK_SIZE 16
-#define FREE_HEADER_SIZE (sizeof(HeaderBlock))
+#define FREE_HEADER_SIZE (sizeof(HBlock))
 #define ALLOC_HEADER_SIZE (sizeof(uint32_t))
 
-size_t get_size(const HeaderBlock* block);
-bool get_free(const HeaderBlock* block);
-void* get_end_addr_block(const HeaderBlock* block);
-void* get_start_addr_block_from_data(void* ptr);
-void set_size(HeaderBlock* block, size_t size);
-void set_free(HeaderBlock* block, HeaderBlock* next, HeaderBlock* prev);
-void make_block(HeaderBlock* block, size_t size, bool free, HeaderBlock* next, HeaderBlock* prev);
-void expand_block(HeaderBlock* block, size_t increment);
-void print_block(const HeaderBlock* block);
+size_t block_get_size(const HBlock* block);
+bool block_get_free(const HBlock* block);
+void* block_get_end_addr(const HBlock* block);
+void* block_get_start_addr_from_data(void* ptr);
+void block_set_size(HBlock* block, size_t size);
+void block_set_free(HBlock* block, HBlock* next, HBlock* prev);
+void block_init(HBlock* block, size_t size, bool free, HBlock* next, HBlock* prev);
+void block_expand(HBlock* block, size_t increment);
+void block_print(const HBlock* block);
 
 #endif
