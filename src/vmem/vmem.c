@@ -2,7 +2,7 @@
 #include "vmem.h"
 
 #define PAGE_SIZE 4096
-#define MAX_HEAP (PAGE_SIZE*1600)
+#define MAX_HEAP (PAGE_SIZE*800)
 
 static char* mem_heap = NULL;
 static char* mem_brk = NULL;

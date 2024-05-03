@@ -32,7 +32,7 @@ static HBlock* expand_heap(size_t bytes) {
     size_t incrCap = heap.capacity;
     void* next = reserve_heap(incrCap);
     HBlock* res;
-    if (heap.freeList.tail == NULL || block_get_end_addr(heap.freeList.tail) < next) {
+    if (heap.freeList.tail == NULL || GET_BLOCK_END_ADDRESS(heap.freeList.tail) < next) {
         // printf("[INFO] Trying append at address: %p\n", next);
         res = list_append(&heap.freeList, next, incrCap);
     } else {
@@ -48,7 +48,7 @@ static HBlock* expand_heap(size_t bytes) {
 static HBlock* ff_find_fit(size_t size) {
     HBlock* curr = heap.freeList.head;
     while (curr != NULL) {
-        size_t currSize = block_get_size(curr);
+        size_t currSize = GET_BLOCK_SIZE(curr);
         if (currSize >= size)
             return curr;
 
@@ -63,7 +63,7 @@ static HBlock* bf_find_fit(size_t size) {
     HBlock* res = NULL;
     size_t resSize = 0;
     while (curr != NULL) {
-        size_t currSize = block_get_size(curr);
+        size_t currSize = GET_BLOCK_SIZE(curr);
         if (currSize > size && (res == NULL || currSize < resSize)) {
             res = curr;
             resSize = currSize;
@@ -88,12 +88,13 @@ void* heap_malloc(size_t bytes) {
         victim = expand_heap(alignedSize);
     }
 
-    size_t startOffset = block_get_size(victim) - alignedSize;
+    size_t startOffset = GET_BLOCK_SIZE(victim) - alignedSize;
     HBlock* curr = (HBlock*)((char*) victim + startOffset);
     if (startOffset == 0) 
        list_remove(&heap.freeList, victim); 
     else {
-        block_set_size(victim, startOffset);
+        SET_BLOCK_SIZE(victim, startOffset);
+        SET_BLOCK_FOOTER(victim, victim->size_free_pack);
         heap.freeList.size -= alignedSize;
     }
 
@@ -103,18 +104,18 @@ void* heap_malloc(size_t bytes) {
 }
 
 void heap_free(void* ptr) {
-    HBlock* block = block_get_start_addr_from_data(ptr);
+    HBlock* block = GET_BLOCK_START_ADDRESS_FROM_DATA(ptr);
     // printf("[FREE] Free block: %p\n", (void*)block);
-    size_t size = block_get_size(block);
+    size_t size = GET_BLOCK_SIZE(block);
     block_init(block, size, true, NULL, NULL);
 
-    list_insert_and_coalesce(&heap.freeList, block);
+    list_insert_and_coalesce(&heap.freeList, block, heap.memory);
     heap.size -= size;
 }
 
 void heap_init(size_t bytes) {
     mem_init();
-    size_t alignedCapacity = bytes < 32 ? GET_ALIGNED_BLOCK(bytes) : GET_ALIGNED_SIZE_16(bytes);
+    size_t alignedCapacity = GET_ALIGNED_BLOCK(bytes);
     heap.memory = reserve_heap(alignedCapacity);
     heap.size = 0;
     list_init(&heap.freeList, heap.memory, heap.capacity);
@@ -157,9 +158,9 @@ void heap_print() {
 //    void* end = (char*)curr + heap.capacity;
 //    while (curr < end) {
 //        block_print(curr);
-//        if (block_get_size(curr) == 0)
+//        if (GET_BLOCK_SIZE(curr) == 0)
 //            break;
-//        curr = block_get_end_addr((HBlock *) curr);
+//        curr = GET_BLOCK_END_ADDRESS((HBlock *) curr);
 //    }
 //    list_print(&heap.freeList);
     printf("-----------------------------\n");

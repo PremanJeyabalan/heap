@@ -1,4 +1,3 @@
-
 #ifndef HEAP_H
 #define HEAP_H
 #include <stdlib.h>
@@ -8,8 +7,6 @@
 #include "hblock.h"
 #include "flist.h"
 
-#define GET_ALIGNED_SIZE_16(x) ((((x) - 1) | 15) + 1)
-#define GET_ALIGNED_BLOCK(x) (GET_ALIGNED_SIZE_16((x)+FREE_HEADER_SIZE))
 
 typedef struct {
     void* memory;

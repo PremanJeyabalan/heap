@@ -35,7 +35,7 @@ int main(void) {
     unsigned long data_segment_free_space;
     struct timespec start_time, end_time;
 //    heap_init(GET_ALIGNED_BLOCK(ALLOC_SIZE) * NUM_ITEMS * 4);
-    heap_init(GET_ALIGNED_BLOCK(ALLOC_SIZE)*NUM_ITEMS*4);
+    heap_init(GET_ALIGNED_BLOCK(ALLOC_SIZE)*NUM_ITEMS);
 
     for (i = 0; i < NUM_ITEMS; i++) {
         array[i] = (int *)MALLOC(ALLOC_SIZE);
@@ -78,9 +78,9 @@ int main(void) {
     printf("Fragmentation  = %f\n",
            (float)data_segment_free_space / (float)data_segment_size);
 
-    for (i = 0; i < NUM_ITEMS; i++) {
-        FREE(spacing_array[i]);
-    }
+//    for (i = 0; i < NUM_ITEMS; i++) {
+//        FREE(spacing_array[i]);
+//    }
 
     heap_collect();
 }
