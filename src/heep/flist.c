@@ -7,13 +7,13 @@ void list_init(FreeList* list, void* memory, size_t size) {
     list->size = size;
 }
 
-HBlock* list_append(FreeList* list, void* start, size_t size) {
+HBlock* list_push_back(FreeList* list, void* memory, size_t size) {
     if (list->head == NULL || list->size == 0) {
-        list_init(list, start, size);
+        list_init(list, memory, size);
         return list->head;
     }
 
-    HBlock* next = (HBlock*) start;
+    HBlock* next = (HBlock*) memory;
     block_init(next, size, true, NULL, list->tail);
     list->tail->next = next;
     list->tail = list->tail->next;
@@ -63,38 +63,7 @@ void list_remove(FreeList* list, HBlock* block) {
     block->next->prev = block->prev;
 }
 
-static HBlock* list_find_prev(FreeList* list, const void* block, const void* start) {
-    if ((void*)list->tail < block) {
-        return ((HBlock*) list->tail);
-    }
-
-//    void* curr = (void*)list->head;
-//    while (curr != NULL) {
-//        if (curr > block)
-//            return ((HBlock*) curr)->prev;
-//
-//        curr = (void*) ((HBlock*) curr)->next;
-//    }
-    void* prev = GET_PREVIOUS_BLOCK_ADDRESS(block);
-    while (prev > start) {
-        if (GET_BLOCK_FREE(prev))
-            return prev;
-
-        prev = GET_PREVIOUS_BLOCK_ADDRESS(prev);
-    }
-
-    if (GET_BLOCK_FREE(start))
-        return (HBlock*)start;
-    else
-        return NULL;
-}
-
-static void list_coalesce(FreeList* list, HBlock* block, HBlock* prev, HBlock* next) {
-    size_t coalesceState = (size_t)(prev && (GET_BLOCK_END_ADDRESS(prev) == (void*) block));
-    coalesceState <<= 1;
-    coalesceState |= (size_t)(next && (GET_BLOCK_END_ADDRESS(block) == (void*) next));
-    // printf("[FREE] Coalesce state: %lu\n", coalesceState);
-
+static void list_coalesce(FreeList* list, HBlock* block, HBlock* prev, HBlock* next, size_t coalesceState) {
     switch (coalesceState) {
         case 0:
             block_init(block, GET_BLOCK_SIZE(block), true, next, prev);
@@ -158,22 +127,52 @@ static void list_coalesce(FreeList* list, HBlock* block, HBlock* prev, HBlock* n
 
 }
 
-void list_insert_and_coalesce(FreeList* list, HBlock* block, const void* memory) {
+void list_insert_and_coalesce(FreeList* list, HBlock* block, const void* start, const void* end) {
     if (list->head == NULL) {
         list_init(list, block, GET_BLOCK_SIZE(block));
         return;
     }
 
-    list->size += GET_BLOCK_SIZE(block);
-
-    HBlock* prev = list_find_prev(list, block, memory);
-    if (prev == NULL) {
-        list_coalesce(list, block, NULL, list->head);
-        list->head = block;
+    if ((void*)block == start) {
+        list_push_front(list, (void*)start, GET_BLOCK_SIZE(block));
         return;
     }
 
-    list_coalesce(list, block, prev, prev->next);
+    HBlock* next = GET_BLOCK_END_ADDRESS((void*)block);
+    if ((void*)next == end) {
+        list_push_back(list, (void*)start, GET_BLOCK_SIZE(block));
+        return;
+    }
+
+    HBlock* prev = GET_PREVIOUS_BLOCK_ADDRESS((void*)block);
+    size_t coalesceState = (GET_BLOCK_FREE(prev) << 1) | GET_BLOCK_FREE(next);
+    switch (coalesceState) {
+        case 0:
+//           normal insert
+            break;
+        case 1:
+//           coalesce right
+            break;
+        case 2:
+//            coalesce left
+            break;
+        case 3:
+//            coalesce all
+            break;
+        default:
+            printf("[ERROR] Unknown coalesce state!\n");
+            exit(1);
+    }
+
+    list->size += GET_BLOCK_SIZE(block);
+
+//    if (prev == NULL) {
+//        list_coalesce(list, block, NULL, list->head);
+//        list->head = block;
+//        return;
+//    }
+//
+//    list_coalesce(list, block, prev, prev->next);
 }
 
 void list_print(FreeList* list) {

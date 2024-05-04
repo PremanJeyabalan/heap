@@ -26,7 +26,7 @@ int test_list_init() {
 int test_list_append_empty() {
     char memory[64] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
     if ((void*)head != memory || !GET_BLOCK_FREE(head) || GET_BLOCK_SIZE(head) != 64 || fList.size != 64 || fList.head != fList.tail)
         return 1;
 
@@ -36,8 +36,8 @@ int test_list_append_empty() {
 int test_list_append_single() {
     char memory[128] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
     if (
             (void*)block != (void*)((char*)fList.head + 64) ||
             fList.head->next != block ||
@@ -54,9 +54,9 @@ int test_list_append_single() {
 int test_list_append_double() {
     char memory[160] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(b), 32);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(b), 32);
 
     if (
             (void*)block != (void*)((char*)b + 64) ||
@@ -87,8 +87,8 @@ int test_list_pop_front_single() {
 int test_list_pop_front_double() {
     char memory[128] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     list_pop_front(&fList);
     if (fList.size != 64 ||
@@ -118,8 +118,8 @@ int test_list_pop_back_single() {
 int test_list_pop_back_double() {
     char memory[128] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     list_pop_back(&fList);
     if (fList.size != 64 ||
@@ -136,8 +136,8 @@ int test_list_pop_back_double() {
 int test_list_remove_head() {
     char memory[128] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     list_remove(&fList, head);
     if (fList.size != 64 ||
@@ -153,8 +153,8 @@ int test_list_remove_head() {
 int test_list_remove_tail() {
     char memory[128] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     list_remove(&fList, block);
 
@@ -171,9 +171,9 @@ int test_list_remove_tail() {
 int test_list_remove_large() {
     char memory[160] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(b), 32);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(b), 32);
 
     list_remove(&fList, b);
 
@@ -191,8 +191,8 @@ int test_list_find_prev_head() {
     char memory[160] = {0};
     void* start = (void*)((char*)memory+32);
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)start, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, (void *) start, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     HBlock* block = (HBlock*)memory;
     block_init(block, 32, true, NULL, NULL);
@@ -207,8 +207,8 @@ int test_list_find_prev_head() {
 int test_list_find_prev_tail() {
     char memory[160] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, memory, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* head = list_push_back(&fList, memory, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
 
     HBlock* block = (HBlock*)((char*)memory + 128);
     block_init(block, 32, true, NULL, NULL);
@@ -223,9 +223,9 @@ int test_list_find_prev_tail() {
 int test_list_find_prev_middle() {
     char memory[160] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 64);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(b), 32);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 64);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(b), 32);
     list_remove(&fList, b);
 
     HBlock* prev = list_find_prev(&fList, b);
@@ -238,9 +238,9 @@ int test_list_find_prev_middle() {
 int test_list_insert_and_coalesce_none() {
     char memory[160] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* b = list_append(&fList, GET_BLOCK_END_ADDRESS(head), 32);
-    HBlock* block = list_append(&fList, GET_BLOCK_END_ADDRESS(b), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* b = list_push_back(&fList, GET_BLOCK_END_ADDRESS(head), 32);
+    HBlock* block = list_push_back(&fList, GET_BLOCK_END_ADDRESS(b), 64);
     list_remove(&fList, block);
     block->next = NULL;
     block->prev = NULL;
@@ -266,8 +266,8 @@ int test_list_insert_and_coalesce_none() {
 int test_list_insert_and_coalesce_left() {
     char memory[1600] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, (void*)((char*) GET_BLOCK_END_ADDRESS(head) + 64), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, (void *) ((char *) GET_BLOCK_END_ADDRESS(head) + 64), 64);
 
     HBlock* b = GET_BLOCK_END_ADDRESS(head);
     block_init(b, 32, true, NULL, NULL);
@@ -288,8 +288,8 @@ int test_list_insert_and_coalesce_left() {
 int test_list_insert_and_coalesce_right() {
     char memory[1600] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, (void*)((char*) GET_BLOCK_END_ADDRESS(head) + 64), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, (void *) ((char *) GET_BLOCK_END_ADDRESS(head) + 64), 64);
 
     HBlock* b = (void*)((char*) GET_BLOCK_END_ADDRESS(head) + 32);
     block_init(b, 32, true, NULL, NULL);
@@ -310,8 +310,8 @@ int test_list_insert_and_coalesce_right() {
 int test_list_insert_and_coalesce_all() {
     char memory[1600] = {0};
     FreeList fList = {0};
-    HBlock* head = list_append(&fList, (void*)memory, 64);
-    HBlock* block = list_append(&fList, (void*)((char*) GET_BLOCK_END_ADDRESS(head) + 64), 64);
+    HBlock* head = list_push_back(&fList, (void *) memory, 64);
+    HBlock* block = list_push_back(&fList, (void *) ((char *) GET_BLOCK_END_ADDRESS(head) + 64), 64);
 
     HBlock* b = GET_BLOCK_END_ADDRESS(head);
     block_init(b, 64, true, NULL, NULL);

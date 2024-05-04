@@ -36,7 +36,7 @@ typedef struct HeaderBlock HBlock;
 #define GET_PREVIOUS_BLOCK_FOOTER_ADDRESS(ptr) ((void*)(((char*)(ptr)) - FOOTER_SIZE))
 #define GET_PREVIOUS_BLOCK_ADDRESS(ptr)(GET_BLOCK_START_ADDRESS_FROM_FOOTER(GET_PREVIOUS_BLOCK_FOOTER_ADDRESS((ptr))))
 
-#define SET_BLOCK_SIZE(ptr, size) (((HBlock*)(ptr))->size_free_pack = (uint32_t)((size) | GET_BLOCK_FREE((ptr)))
+#define SET_BLOCK_SIZE(ptr, size) (((HBlock*)(ptr))->size_free_pack = (uint32_t)((size) | GET_BLOCK_FREE((ptr))))
 #define SET_BLOCK_FREE(ptr, free) (((HBlock*)(ptr))->size_free_pack |= 0x01)
 #define SET_BLOCK_SIZE_FREE_PACK(block, size, free) (((HBlock*)(block))->size_free_pack = (uint32_t)(size) | (uint32_t)(free))
 #define SET_BLOCK_FOOTER(ptr, pack) (*((uint32_t*)(GET_BLOCK_FOOTER_ADDRESS((void*)(ptr)))) = (pack))

@@ -11,11 +11,12 @@ typedef struct {
 } FreeList;
 
 void list_init(FreeList* list, void* memory, size_t size);
-HBlock* list_append(FreeList* list, void* memory, size_t size);
+HBlock* list_push_back(FreeList* list, void* memory, size_t size);
+HBlock* list_push_front(FreeList* list, void* memory, size_t size);
 void list_pop_front(FreeList* list);
 void list_pop_back(FreeList* list);
 void list_remove(FreeList* list, HBlock* block);
-void list_insert_and_coalesce(FreeList* list, HBlock* block, const void* memory);
+void list_insert_and_coalesce(FreeList* list, HBlock* block, const void* start, const void* end);
 void list_print(FreeList* list);
 
 #endif

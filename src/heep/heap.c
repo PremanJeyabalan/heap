@@ -34,7 +34,7 @@ static HBlock* expand_heap(size_t bytes) {
     HBlock* res;
     if (heap.freeList.tail == NULL || GET_BLOCK_END_ADDRESS(heap.freeList.tail) < next) {
         // printf("[INFO] Trying append at address: %p\n", next);
-        res = list_append(&heap.freeList, next, incrCap);
+        res = list_push_back(&heap.freeList, next, incrCap);
     } else {
         block_expand(heap.freeList.tail, incrCap);
         heap.freeList.size += incrCap;
@@ -109,7 +109,7 @@ void heap_free(void* ptr) {
     size_t size = GET_BLOCK_SIZE(block);
     block_init(block, size, true, NULL, NULL);
 
-    list_insert_and_coalesce(&heap.freeList, block, heap.memory);
+    list_insert_and_coalesce(&heap.freeList, block, heap.memory, (void*)((char*)heap.memory + heap.capacity));
     heap.size -= size;
 }
 
