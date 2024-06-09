@@ -18,7 +18,7 @@ namespace heep {
         m_sizeFreePack = pack;
         m_next = next;
         m_prev = prev;
-        getFooterAddr()->assign(this);
+        setFooter();
     }
 
     void HeapBlock::expand(size_t increment) {

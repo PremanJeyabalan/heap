@@ -3,6 +3,6 @@ FetchContent_Declare(catch
         GIT_TAG v3.4.0)
 FetchContent_MakeAvailable(catch)
 
-#add_executable(testOrderBook OrderBookTests.cpp ExchangeOrderMatcher.hpp)
-#target_link_libraries(testOrderBook PRIVATE
-#        exchange Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)
+add_executable(testHeapBlock HeapBlockTests.cpp)
+target_link_libraries(testHeapBlock PRIVATE
+    heep vmem Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)
