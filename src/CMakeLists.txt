@@ -1,59 +1,28 @@
 set(HEADER_LIST_VMEM
-        ${PROJECT_SOURCE_DIR}/include/vmem/vmem.h)
+        ${PROJECT_SOURCE_DIR}/include/vmem/VirtualStaticHeap.hpp)
 
 set(HEADER_LIST_HEEP
-        ${PROJECT_SOURCE_DIR}/include/heep/hblock.h
-        ${PROJECT_SOURCE_DIR}/include/heep/flist.h
-        ${PROJECT_SOURCE_DIR}/include/heep/heap.h)
-
-set(HEADER_LIST_HEEP_BENCHMARK
-        ${PROJECT_SOURCE_DIR}/include/hbench/hbench.h)
+        ${PROJECT_SOURCE_DIR}/include/heep/HeapBlock.hpp
+        ${PROJECT_SOURCE_DIR}/include/heep/FreeList.hpp
+        ${PROJECT_SOURCE_DIR}/include/heep/HeapManager.hpp
+        ${PROJECT_SOURCE_DIR}/include/heep/Helpers.hpp)
 
 set(HEADER_LIST
         ${HEADER_LIST_VMEM}
-        ${HEADER_LIST_HEEP}
-        ${HEADER_LIS_HEEP_BENCHMARK})
+        ${HEADER_LIST_HEEP})
 
 add_library(vmem
-        vmem/vmem.c
+        vmem/VirtualStaticHeap.cpp
         ${HEADER_LIST_VMEM})
 target_include_directories(vmem PUBLIC ${PROJECT_SOURCE_DIR}/include/vmem)
 
-
-add_library(first_fit_macro INTERFACE)
-target_compile_definitions(first_fit_macro INTERFACE FIRST_FIT_FIND)
-add_library(best_fit_macro INTERFACE)
-target_compile_definitions(best_fit_macro INTERFACE BEST_FIT_FIND)
-
-
-add_library(FirstFitHeap
-        heep/hblock.c
-        heep/flist.c
-        heep/heap.c
+add_library(heep
+        heep/HeapBlock.cpp heep/FreeList.cpp
         ${HEADER_LIST_HEEP})
-target_include_directories(FirstFitHeap PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(FirstFitHeap
+target_include_directories(heep PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_link_libraries(heep
         PRIVATE vmem
-        PUBLIC first_fit_macro)
-
-
-add_library(BestFitHeap
-        heep/hblock.c
-        heep/flist.c
-        heep/heap.c
-        ${HEADER_LIST_HEEP})
-target_include_directories(BestFitHeap PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(BestFitHeap
-        PRIVATE vmem
-        PUBLIC best_fit_macro)
-
-
-add_library(HeepBenchmark
-        hbench/hbench.c
-        ${HEADER_LIST_HEEP_BENCHMARK})
-target_include_directories(HeepBenchmark PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_link_libraries(HeepBenchmark
-        PRIVATE FirstFitHeap)
+        PUBLIC fmt)
 
 # IDEs should put the headers in a nice place
 source_group(
