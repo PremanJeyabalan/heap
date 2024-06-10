@@ -24,6 +24,8 @@ namespace heep {
         [[nodiscard]] bool getFree() const;
         [[nodiscard]] HeapBlock* getNext() const;
         [[nodiscard]] HeapBlock* getPrev() const;
+        HeapBlock** next();
+        HeapBlock** prev();
 
     public:
         [[nodiscard]] void* getEndAddr() const;

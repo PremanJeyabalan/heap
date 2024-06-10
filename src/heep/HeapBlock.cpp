@@ -52,7 +52,15 @@ namespace heep {
     }
 
     HeapBlock *HeapBlock::getPrev() const {
-        return m_prev;
+        return nullptr;
+    }
+
+    HeapBlock** HeapBlock::next() {
+        return &m_next;
+    }
+
+    HeapBlock** HeapBlock::prev() {
+        return &m_prev;
     }
 
     void *HeapBlock::getEndAddr() const {
@@ -78,6 +86,7 @@ namespace heep {
     void HeapBlock::setFooter() {
         getFooterAddr()->assign(this);
     }
+
 
 
 }

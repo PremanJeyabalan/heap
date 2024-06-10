@@ -19,25 +19,25 @@ TEST_CASE("Heap header blocks should inserted correctly", "[hblock]") {
         REQUIRE(!block->getFree());
         void* expectedEndAddress = static_cast<char*>(start) + 64;
         REQUIRE(block->getEndAddr() == expectedEndAddress);
-        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::footer_size));
+        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::free_footer_size));
         auto* footer =  block->getFooterAddr();
         REQUIRE(footer->getSize() == block->getSize());
         REQUIRE(footer->getFree() == block->getFree());
-        REQUIRE(footer->getNext() == block->getNext());
-        REQUIRE(footer->getPrev() == block->getPrev());
+        REQUIRE(footer->next() == block->next());
+        REQUIRE(footer->prev() == block->prev());
 
         block->init(65, block, nullptr);
         REQUIRE(block->getSize() == 64);
         REQUIRE(block->getFree());
         expectedEndAddress = static_cast<char*>(start) + 64;
         REQUIRE(block->getEndAddr() == expectedEndAddress);
-        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::footer_size));
+        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::free_footer_size));
         REQUIRE(block->getNext() == block);
         footer =  block->getFooterAddr();
         REQUIRE(footer->getSize() == block->getSize());
         REQUIRE(footer->getFree() == block->getFree());
-        REQUIRE(footer->getNext() == block->getNext());
-        REQUIRE(footer->getPrev() == block->getPrev());
+        REQUIRE(footer->next() == block->next());
+        REQUIRE(footer->prev() == block->prev());
     }
 
     SECTION("expand should increase by increment only") {
@@ -48,12 +48,12 @@ TEST_CASE("Heap header blocks should inserted correctly", "[hblock]") {
         REQUIRE(!block->getFree());
         void* expectedEndAddress = static_cast<char*>(start) + 80;
         REQUIRE(block->getEndAddr() == expectedEndAddress);
-        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::footer_size));
+        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::free_footer_size));
         auto* footer =  block->getFooterAddr();
         REQUIRE(footer->getSize() == block->getSize());
         REQUIRE(footer->getFree() == block->getFree());
-        REQUIRE(footer->getNext() == block->getNext());
-        REQUIRE(footer->getPrev() == block->getPrev());
+        REQUIRE(footer->next() == block->next());
+        REQUIRE(footer->prev() == block->prev());
 
         block->init(65, nullptr, nullptr);
         block->expand(16);
@@ -61,11 +61,11 @@ TEST_CASE("Heap header blocks should inserted correctly", "[hblock]") {
         REQUIRE(block->getFree());
         expectedEndAddress = static_cast<char*>(start) + 80;
         REQUIRE(block->getEndAddr() == expectedEndAddress);
-        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::footer_size));
+        REQUIRE(block->getFooterAddr() == (void*)(static_cast<char*>(expectedEndAddress) - heep::helpers::free_footer_size));
         footer =  block->getFooterAddr();
         REQUIRE(footer->getSize() == block->getSize());
         REQUIRE(footer->getFree() == block->getFree());
-        REQUIRE(footer->getNext() == block->getNext());
-        REQUIRE(footer->getPrev() == block->getPrev());
+        REQUIRE(footer->next() == block->next());
+        REQUIRE(footer->prev() == block->prev());
     }
 }
