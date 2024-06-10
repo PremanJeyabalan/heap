@@ -6,3 +6,7 @@ FetchContent_MakeAvailable(catch)
 add_executable(testHeapBlock HeapBlockTests.cpp)
 target_link_libraries(testHeapBlock PRIVATE
     heep vmem Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)
+
+add_executable(testHeapHelpers HeapHelpersTests.cpp)
+target_link_libraries(testHeapHelpers PRIVATE
+        heep vmem Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)
