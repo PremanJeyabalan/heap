@@ -51,6 +51,61 @@ namespace heep {
             m_head = nullptr;
     }
 
+    void FreeList::popFront() {
+        if (m_head == nullptr)
+            return;
+
+        m_size -= m_head->getSize();
+        m_head = m_head->getNext();
+        if (m_head != nullptr)
+            *(m_head->prev()) = nullptr;
+        else
+            m_tail = nullptr;
+    }
+
+    void FreeList::erase(HeapBlock *block) {
+        if (m_head == nullptr)
+            return;
+
+        if (block == m_head)
+            popFront();
+        else if (block == m_tail)
+            popBack();
+        else {
+            auto* prev = block->getPrev();
+            auto* next = block->getNext();
+            m_size -= block->getSize();
+
+            *(prev->next()) = next;
+            *(next->prev()) = prev;
+        }
+    }
+
+    HeapBlock* FreeList::insert(void* memory, size_t size, const void* start, const void* end) {
+        if (m_head == nullptr)
+            return pushBack(memory, size);
+
+        auto* newStart = static_cast<HeapBlock*>(memory);
+        size_t newSize = size;
+        HeapBlock* newNext = nullptr;
+        bool coalesceRight = false;
+        auto* next = static_cast<HeapBlock*>(helpers::get_block_end_address_from_start(memory, size));
+        if (next != end && next->getFree()) {
+            coalesceRight = true;
+            newSize += next->getSize();
+            newNext = next->getNext();
+        } else newNext = findNextFree(next, end);
+
+        bool coalesceLeft = false;
+        HeapBlock* newPrev = nullptr;
+        HeapBlock* prev = nullptr;
+        if (memory != start) {
+            prev = static_cast<HeapBlock*>(helpers::get_block_prev_start_address(memory));
+            coalesceLeft = prev->getFree();
+        }
+
+    }
+
     void FreeList::print() const {
         HeapBlock* curr = m_head;
         fmt::print("--- Free Block State ---\n");
@@ -72,6 +127,9 @@ namespace heep {
         return m_size;
     }
 
+    HeapBlock *FreeList::findNextFree(HeapBlock* block, const void* end) const {
+        return nullptr;
+    }
 
 
 }

@@ -24,8 +24,6 @@ namespace heep {
         [[nodiscard]] bool getFree() const;
         [[nodiscard]] HeapBlock* getNext() const;
         [[nodiscard]] HeapBlock* getPrev() const;
-        HeapBlock** next();
-        HeapBlock** prev();
 
     public:
         [[nodiscard]] void* getEndAddr() const;
@@ -34,6 +32,8 @@ namespace heep {
     public:
         void setSize(uint32_t size);
         void setFree(bool free);
+        HeapBlock** next();
+        HeapBlock** prev();
         void setPack(uint32_t size, bool pack);
         void setFooter();
 
