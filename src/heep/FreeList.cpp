@@ -82,28 +82,60 @@ namespace heep {
     }
 
     HeapBlock* FreeList::insert(void* memory, size_t size, const void* start, const void* end) {
+        //handle empty free list
         if (m_head == nullptr)
             return pushBack(memory, size);
 
-        auto* newStart = static_cast<HeapBlock*>(memory);
-        size_t newSize = size;
-        HeapBlock* newNext = nullptr;
-        bool coalesceRight = false;
-        auto* next = static_cast<HeapBlock*>(helpers::get_block_end_address_from_start(memory, size));
-        if (next != end && next->getFree()) {
-            coalesceRight = true;
-            newSize += next->getSize();
-            newNext = next->getNext();
-        } else newNext = findNextFree(next, end);
+        m_size += size;
+        auto* entry = static_cast<HeapBlock*>(memory);
+        auto [entryPrev, entryNext] = getNeighbours(entry);
+        bool coalesceRight = entryNext.has_value() && entryNext.value()->getFree();
+        bool coalesceLeft = entryPrev.has_value() && entryPrev.value()->getFree();
 
-        bool coalesceLeft = false;
-        HeapBlock* newPrev = nullptr;
-        HeapBlock* prev = nullptr;
-        if (memory != start) {
-            prev = static_cast<HeapBlock*>(helpers::get_block_prev_start_address(memory));
-            coalesceLeft = prev->getFree();
+        auto* newBlockStart = entry;
+        size_t newBlockSize = size;
+        HeapBlock* newBlockNext = nullptr;
+        HeapBlock* newBlockPrev = nullptr;
+
+        if (!coalesceRight && !coalesceLeft) {
+            auto [prev, next] = findPrevAndNextFree(newBlockStart);
+            newBlockPrev = prev;
+            if (newBlockPrev)
+                *(prev->next()) = newBlockStart;
+
+            newBlockNext = next;
+            if (newBlockNext)
+                *(next->prev()) = newBlockStart;
+
+        } else if (coalesceLeft) {
+            auto entryPrevVal = entryPrev.value();
+//            auto entryNextVal = entryNext.value();
+
+            newBlockStart = entryPrevVal;
+            newBlockPrev = entryPrevVal->getPrev();
+            if (coalesceRight) {
+                auto entryNextVal = entryNext.value();
+                newBlockSize += entryNextVal->getSize() + entryPrevVal->getSize();
+                newBlockNext = entryNextVal->getNext();
+                if (newBlockNext)
+                    *(newBlockNext->prev()) = newBlockStart;
+            } else {
+                newBlockSize = entryPrevVal->getSize();
+                newBlockNext = entryPrevVal->getNext();
+            }
+        } else {
+            auto entryNextVal = entryNext.value();
+            newBlockSize += entryNextVal->getSize();
+            newBlockPrev = entryNextVal->getPrev();
+            if (newBlockPrev)
+                *(newBlockPrev->next()) = newBlockStart;
+
+            newBlockNext = entryNextVal->getNext();
+            if (newBlockNext)
+                *(newBlockNext->prev()) = newBlockStart;
         }
 
+        return HeapBlock::CreateFreeBlockAtMemory(newBlockStart, newBlockSize, newBlockPrev, newBlockNext);
     }
 
     void FreeList::print() const {

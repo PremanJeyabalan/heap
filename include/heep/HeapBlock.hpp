@@ -12,6 +12,7 @@ namespace heep {
     struct HeapBlock {
     public:
         HeapBlock(uint32_t size, bool free, HeapBlock *next, HeapBlock *prev);
+        static HeapBlock* CreateFreeBlockAtMemory(void* memory, size_t size, HeapBlock* prev, HeapBlock* next);
 
     public:
         void init(uint32_t pack, HeapBlock* next, HeapBlock* prev);

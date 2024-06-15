@@ -5,6 +5,7 @@
 #ifndef HEEP_FLIST_HPP
 #define HEEP_FLIST_HPP
 
+#include <optional>
 #include "HeapBlock.hpp"
 
 namespace heep {
@@ -30,6 +31,11 @@ namespace heep {
 
     private:
         [[nodiscard]] HeapBlock* findNextFree(HeapBlock* block, const void* end) const;
+        std::pair<
+            std::optional<HeapBlock*>, std::optional<HeapBlock*>
+            > getNeighbours(HeapBlock*) const;
+
+        std::pair<HeapBlock*, HeapBlock*> findPrevAndNextFree(HeapBlock* block) const;
 
     private:
         HeapBlock* m_head;
