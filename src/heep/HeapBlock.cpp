@@ -14,6 +14,14 @@ namespace heep {
         setFooter();
     }
 
+    HeapBlock *HeapBlock::CreateFreeBlockAtMemory(void *memory, size_t size, HeapBlock *prev, HeapBlock *next) {
+        auto* res = static_cast<HeapBlock*>(memory);
+        res->init(helpers::size_and_free_to_pack(size, true), next, prev);
+        return res;
+    }
+
+
+
     void HeapBlock::init(uint32_t pack, HeapBlock *next, HeapBlock *prev) {
         m_sizeFreePack = pack;
         m_next = next;
@@ -52,7 +60,7 @@ namespace heep {
     }
 
     HeapBlock *HeapBlock::getPrev() const {
-        return nullptr;
+        return m_prev;
     }
 
     HeapBlock** HeapBlock::next() {
@@ -87,6 +95,25 @@ namespace heep {
         getFooterAddr()->assign(this);
     }
 
+    std::pair<
+            std::optional<HeapBlock *>, std::optional<HeapBlock *>
+    > HeapBlock::GetNeighbours(HeapBlock* block, size_t size, const void* startBoundary, const void* endBoundary) {
+        std::optional<HeapBlock*> prevOpt = [](HeapBlock* b, const void* startBdry) -> std::optional<HeapBlock*> {
+            if (b == startBdry)
+                return {std::nullopt};
 
+            return (HeapBlock*) helpers::get_block_prev_start_address(b);
+        }(block, startBoundary);
+
+        std::optional<HeapBlock*> nextOpt = [](HeapBlock* b, size_t size, const void* endBdry) -> std::optional<HeapBlock*> {
+            void* endAddr = helpers::get_block_end_address_from_start(b, size);
+            if (endAddr == endBdry)
+                return {std::nullopt};
+
+            return (HeapBlock*) endAddr;
+        }(block, size, endBoundary);
+
+        return std::make_pair(prevOpt, nextOpt);
+    }
 
 }

@@ -35,6 +35,11 @@ namespace heep::helpers {
         return size | static_cast<uint32_t>(free);
     }
 
+    static constexpr void* get_block_advanced_by_size(void* ptr, uint32_t size) {
+        return static_cast<void*>(
+                static_cast<char*>(ptr) + size);
+    }
+
     static constexpr void* get_block_end_address_from_start(void* ptr, uint32_t size) {
         return static_cast<void*>(
                 static_cast<char*>(ptr) + size);

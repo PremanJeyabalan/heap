@@ -16,10 +16,11 @@ namespace heep {
     public:
         HeapBlock* pushBack(void* memory, size_t size);
         HeapBlock* pushFront(void* memory, size_t size);
+        HeapBlock* insert(void* memory, size_t size, const void* start, const void* end);
+        HeapBlock* resizeBlock(void* memory, size_t newSize);
         void popBack();
         void popFront();
         void erase(HeapBlock* block);
-        HeapBlock* insert(void* memory, size_t size, const void* start, const void* end);
 
     public:
         void print() const;
@@ -30,11 +31,6 @@ namespace heep {
         [[nodiscard]] size_t size() const;
 
     private:
-        [[nodiscard]] HeapBlock* findNextFree(HeapBlock* block, const void* end) const;
-        std::pair<
-            std::optional<HeapBlock*>, std::optional<HeapBlock*>
-            > getNeighbours(HeapBlock*) const;
-
         std::pair<HeapBlock*, HeapBlock*> findPrevAndNextFree(HeapBlock* block) const;
 
     private:

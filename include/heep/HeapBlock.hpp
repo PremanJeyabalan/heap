@@ -7,12 +7,16 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <optional>
 
 namespace heep {
     struct HeapBlock {
     public:
         HeapBlock(uint32_t size, bool free, HeapBlock *next, HeapBlock *prev);
         static HeapBlock* CreateFreeBlockAtMemory(void* memory, size_t size, HeapBlock* prev, HeapBlock* next);
+        static std::pair<
+                std::optional<HeapBlock*>, std::optional<HeapBlock*>
+        > GetNeighbours(HeapBlock* block, size_t size, const void* startBoundary, const void* endBoundary);
 
     public:
         void init(uint32_t pack, HeapBlock* next, HeapBlock* prev);

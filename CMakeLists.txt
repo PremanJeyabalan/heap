@@ -4,7 +4,7 @@ project(heep
         DESCRIPTION "A static C++ library implementation of malloc and free"
         LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     set(CMAKE_C_EXTENSIONS OFF)
