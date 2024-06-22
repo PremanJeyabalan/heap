@@ -10,6 +10,7 @@
 #include "HeapBlock.hpp"
 
 namespace heep::helpers {
+    static constexpr size_t page_size = 4096;
     static constexpr size_t get_aligned_16_bytes(size_t bytes) {
         return (((bytes - 1) | 15) + 1);
     }
@@ -23,6 +24,10 @@ namespace heep::helpers {
 
     static constexpr size_t get_aligned_block(size_t bytes) {
         return get_aligned_16_bytes(alloc_header_size + get_aligned_16_bytes(bytes) + free_footer_size);
+    }
+
+    static constexpr size_t get_aligned_page(size_t bytes) {
+        return (((bytes - 1) | (page_size-1)) + 1);
     }
 
     static constexpr uint32_t get_size_from_pack(uint32_t pack) {
@@ -40,9 +45,13 @@ namespace heep::helpers {
                 static_cast<char*>(ptr) + size);
     }
 
+    static constexpr void* get_block_data_address_from_start(void* ptr) {
+        return get_block_advanced_by_size(ptr, alloc_header_size);
+    }
+
     static constexpr void* get_block_end_address_from_start(void* ptr, uint32_t size) {
-        return static_cast<void*>(
-                static_cast<char*>(ptr) + size);
+        return get_block_advanced_by_size(ptr, size);
+
     }
     static constexpr void* get_block_footer_address_from_start(void* ptr, uint32_t size) {
         return static_cast<void*>(

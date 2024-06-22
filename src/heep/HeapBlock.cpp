@@ -20,6 +20,12 @@ namespace heep {
         return res;
     }
 
+    HeapBlock *HeapBlock::CreateAllocBlockAtMemory(void *memory, size_t size) {
+        auto* res = static_cast<HeapBlock*>(memory);
+        res->init(helpers::size_and_free_to_pack(size, false), nullptr, nullptr);
+        return res;
+    }
+
 
 
     void HeapBlock::init(uint32_t pack, HeapBlock *next, HeapBlock *prev) {
@@ -75,6 +81,10 @@ namespace heep {
         return helpers::get_block_end_address_from_start((void *) this, getSize());
     }
 
+    void *HeapBlock::getDataAddr() const {
+        return helpers::get_block_data_address_from_start(const_cast<void *>(static_cast<const void *>(this)));
+    }
+
     HeapBlock *HeapBlock::getFooterAddr() const {
         return static_cast<HeapBlock*>(helpers::get_block_footer_address_from_start((void *) this, getSize()));
     }
@@ -115,5 +125,7 @@ namespace heep {
 
         return std::make_pair(prevOpt, nextOpt);
     }
+
+
 
 }

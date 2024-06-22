@@ -3,11 +3,13 @@
 //
 
 #include <heep/HeapManager.hpp>
+#include <heep/Finders.hpp>
 
 
 int main() {
-    struct F{};
-    heep::HeapManager<F> heapManager{64};
+    heep::HeapManager heapManager{64};
+    heapManager.print();
+    heapManager.allocate<heep::finders::FirstFit>(32);
     heapManager.print();
     return 0;
 }

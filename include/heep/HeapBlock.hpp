@@ -14,6 +14,7 @@ namespace heep {
     public:
         HeapBlock(uint32_t size, bool free, HeapBlock *next, HeapBlock *prev);
         static HeapBlock* CreateFreeBlockAtMemory(void* memory, size_t size, HeapBlock* prev, HeapBlock* next);
+        static HeapBlock* CreateAllocBlockAtMemory(void* memory, size_t size);
         static std::pair<
                 std::optional<HeapBlock*>, std::optional<HeapBlock*>
         > GetNeighbours(HeapBlock* block, size_t size, const void* startBoundary, const void* endBoundary);
@@ -32,6 +33,7 @@ namespace heep {
 
     public:
         [[nodiscard]] void* getEndAddr() const;
+        [[nodiscard]] void* getDataAddr() const;
         [[nodiscard]] HeapBlock* getFooterAddr() const;
 
     public:

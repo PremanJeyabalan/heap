@@ -11,13 +11,14 @@
 namespace heep {
     class FreeList {
     public:
+        FreeList()=default;
         FreeList(void* memory, size_t capacity);
 
     public:
         HeapBlock* pushBack(void* memory, size_t size);
         HeapBlock* pushFront(void* memory, size_t size);
         HeapBlock* insert(void* memory, size_t size, const void* start, const void* end);
-        HeapBlock* resizeBlock(void* memory, size_t newSize);
+        std::optional<HeapBlock*> resizeBlock(HeapBlock* memory, size_t newSize);
         void popBack();
         void popFront();
         void erase(HeapBlock* block);

@@ -133,6 +133,18 @@ namespace heep {
         return HeapBlock::CreateFreeBlockAtMemory(newBlockStart, newBlockSize, newBlockPrev, newBlockNext);
     }
 
+    std::optional<HeapBlock*> FreeList::resizeBlock(HeapBlock* block, size_t newSize) {
+        if (newSize == 0) {
+            erase(block);
+            return std::nullopt;
+        }
+
+        size_t originalSize = block->getSize();
+        block->setSize(newSize);
+        m_size -= (originalSize - newSize);
+        return block;
+    }
+
     void FreeList::print() const {
         HeapBlock* curr = m_head;
         fmt::print("--- Free Block State ---\n");
@@ -165,5 +177,6 @@ namespace heep {
 
         return std::make_pair(currPrev->getPrev(), currPrev);
     }
+
 
 }
