@@ -35,6 +35,7 @@ namespace heep {
         [[nodiscard]] void* getEndAddr() const;
         [[nodiscard]] void* getDataAddr() const;
         [[nodiscard]] HeapBlock* getFooterAddr() const;
+        [[nodiscard]] HeapBlock* getPrevStartAddr() const;
 
     public:
         void setSize(uint32_t size);

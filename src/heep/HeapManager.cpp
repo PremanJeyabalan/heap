@@ -62,14 +62,15 @@ namespace heep {
         return top;
     }
 
-    HeapBlock *HeapManager::expandHeap(size_t bytes) {
+    HeapBlock* HeapManager::expandHeap(size_t bytes) {
         size_t incrCapacity = helpers::get_aligned_page(bytes);
         void* newFreeBlock = reserve(incrCapacity);
 
         HeapBlock* fListTail = m_freeList.getTail();
         return (fListTail == nullptr || fListTail->getEndAddr() != newFreeBlock) ?
             m_freeList.pushBack(newFreeBlock, incrCapacity) :
-            m_freeList.resizeBlock(fListTail, fListTail->getSize() + incrCapacity)
+            m_freeList
+                .resizeBlock(fListTail, fListTail->getSize() + incrCapacity)
                 .value();
     }
 }

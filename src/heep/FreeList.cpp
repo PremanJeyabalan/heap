@@ -79,7 +79,6 @@ namespace heep {
     }
 
     HeapBlock* FreeList::insert(void* memory, size_t size, const void* start, const void* end) {
-        //handle empty free list
         if (m_head == nullptr)
             return pushBack(memory, size);
 
@@ -125,7 +124,7 @@ namespace heep {
                 if (newBlockNext)
                     *(newBlockNext->prev()) = newBlockStart;
             } else {
-                newBlockSize = entryPrevVal->getSize();
+                newBlockSize += entryPrevVal->getSize();
                 newBlockNext = entryPrevVal->getNext();
             }
         }
@@ -169,13 +168,33 @@ namespace heep {
     std::pair<HeapBlock*, HeapBlock*> FreeList::findPrevAndNextFree(HeapBlock *block) const {
         if (block > m_tail)
             return std::make_pair(m_tail, nullptr);
+        else if (block < m_head)
+            return std::make_pair(nullptr, m_head);
 
-        auto* currPrev = m_head;
-        while (block > currPrev) {
-            currPrev = currPrev->getNext();
-        }
+        HeapBlock* prev = [&]() -> HeapBlock* {
+            auto* prevBlock = block->getPrevStartAddr();
+            while (prevBlock >= m_head) {
+                if (prevBlock->getFree())
+                    return prevBlock;
 
-        return std::make_pair(currPrev->getPrev(), currPrev);
+                prevBlock = prevBlock->getPrevStartAddr();
+            }
+
+            return nullptr;
+        }();
+
+        return std::make_pair(prev, prev->getNext());
+
+
+//        if (block > m_tail)
+//            return std::make_pair(m_tail, nullptr);
+//
+//        auto* currPrev = m_head;
+//        while (block > currPrev) {
+//            currPrev = currPrev->getNext();
+//        }
+
+//        return std::make_pair(currPrev->getPrev(), currPrev);
     }
 
 

@@ -31,7 +31,7 @@ namespace heep {
         [[nodiscard]] HeapBlock* getTail() const;
         [[nodiscard]] size_t size() const;
 
-    private:
+    public:
         std::pair<HeapBlock*, HeapBlock*> findPrevAndNextFree(HeapBlock* block) const;
 
     private:

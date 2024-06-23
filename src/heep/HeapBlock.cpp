@@ -82,11 +82,15 @@ namespace heep {
     }
 
     void *HeapBlock::getDataAddr() const {
-        return helpers::get_block_data_address_from_start(const_cast<void *>(static_cast<const void *>(this)));
+        return helpers::get_block_data_address_from_start((void*)this);
     }
 
     HeapBlock *HeapBlock::getFooterAddr() const {
         return static_cast<HeapBlock*>(helpers::get_block_footer_address_from_start((void *) this, getSize()));
+    }
+
+    HeapBlock *HeapBlock::getPrevStartAddr() const {
+        return static_cast<HeapBlock*>(helpers::get_block_prev_start_address((void*)this));
     }
 
     void HeapBlock::setSize(uint32_t size) {
@@ -125,7 +129,4 @@ namespace heep {
 
         return std::make_pair(prevOpt, nextOpt);
     }
-
-
-
 }

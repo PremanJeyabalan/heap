@@ -53,7 +53,8 @@ namespace heep {
         size_t alignedSize = helpers::get_aligned_block(bytes);
 
         std::optional<HeapBlock*> victimOpt = Finder()(m_freeList, alignedSize);
-        HeapBlock* victimBlock = victimOpt.value_or(expandHeap(alignedSize));
+        HeapBlock* victimBlock = victimOpt.has_value() ?
+                victimOpt.value() : expandHeap(alignedSize);
 
         size_t newVictimSize = victimBlock->getSize() - alignedSize;
         std::optional<HeapBlock*> victimBlockResized = m_freeList.resizeBlock(victimBlock, newVictimSize);
