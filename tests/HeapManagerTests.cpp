@@ -23,6 +23,20 @@ TEST_CASE("Heap Manager should correctly expand heap by incremental aligned byte
         REQUIRE(hm.size() == page_size + 64);
     }
 
-    SECTION("Expanding heap where last block is alloced should not coalesce") {}
+    SECTION("Expanding heap where last block is alloced should not coalesce") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(2001);
+        REQUIRE(hm.size() == 2064);
+        REQUIRE(hm.capacity() == page_size);
+
+        auto* startFirstAlloced = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr));
+        auto* firstFreeBlock = static_cast<heep::HeapBlock*>(get_block_prev_start_address(startFirstAlloced));
+        REQUIRE(firstFreeBlock->getFree());
+        REQUIRE(firstFreeBlock->getSize() == 2032);
+
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(2000);
+        auto* secondFreeBlock = static_cast<heep::HeapBlock *>(startFirstAlloced->getEndAddr());
+        REQUIRE(firstFreeBlock->getNext() == secondFreeBlock);
+        REQUIRE(secondFreeBlock->getPrev() == firstFreeBlock);
+    }
     SECTION("Expanding heap where last block is free should coalesce") {}
 }

@@ -140,6 +140,7 @@ namespace heep {
 
         size_t originalSize = block->getSize();
         block->setSize(newSize);
+        block->setFooter();
         m_size -= (originalSize - newSize);
         return block;
     }
