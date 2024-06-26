@@ -114,7 +114,7 @@ namespace heep {
     > HeapBlock::GetNeighbours(HeapBlock* block, size_t size, const void* startBoundary, const void* endBoundary) {
         std::optional<HeapBlock*> prevOpt = [](HeapBlock* b, const void* startBdry) -> std::optional<HeapBlock*> {
             if (b == startBdry)
-                return {std::nullopt};
+                return std::nullopt;
 
             return (HeapBlock*) helpers::get_block_prev_start_address(b);
         }(block, startBoundary);
@@ -122,7 +122,7 @@ namespace heep {
         std::optional<HeapBlock*> nextOpt = [](HeapBlock* b, size_t size, const void* endBdry) -> std::optional<HeapBlock*> {
             void* endAddr = helpers::get_block_end_address_from_start(b, size);
             if (endAddr == endBdry)
-                return {std::nullopt};
+                return std::nullopt;
 
             return (HeapBlock*) endAddr;
         }(block, size, endBoundary);

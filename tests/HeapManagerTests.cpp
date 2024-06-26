@@ -38,5 +38,25 @@ TEST_CASE("Heap Manager should correctly expand heap by incremental aligned byte
         REQUIRE(firstFreeBlock->getNext() == secondFreeBlock);
         REQUIRE(secondFreeBlock->getPrev() == firstFreeBlock);
     }
-    SECTION("Expanding heap where last block is free should coalesce") {}
+
+    SECTION("Expanding heap where last block is free should coalesce") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(100);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(100);
+        hm.deallocate(ptr);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(page_size);
+
+        REQUIRE(hm.capacity() == 3*page_size);
+        REQUIRE(hm.size() == (get_aligned_block(page_size) + get_aligned_block(100)));
+
+        auto* firstFreeBlock = static_cast<heep::HeapBlock*>(get_block_prev_start_address(
+                get_block_start_address_from_data(ptr2)));
+        auto* firstAllocBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
+        auto* secondFreeBlock = static_cast<heep::HeapBlock*>(firstAllocBlock->getEndAddr());
+
+        hm.print();
+
+        REQUIRE(firstFreeBlock->getNext() == secondFreeBlock);
+        REQUIRE(secondFreeBlock->getPrev() == firstFreeBlock);
+        REQUIRE(secondFreeBlock->getNext() == nullptr);
+    }
 }
