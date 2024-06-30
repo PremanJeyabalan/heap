@@ -11,8 +11,7 @@ TEST_CASE("Heap Manager should correctly expand heap by incremental aligned byte
     using namespace heep::helpers;
     heep::HeapManager hm{1*page_size};
 
-
-    SECTION("Expanding fully allocated heap should not coalesce") {
+    SECTION("Expanding fully alloced heap should not coalesce") {
         auto* ptr = hm.allocate<heep::finders::BestFit>(253*16);
         REQUIRE(hm.size() == 1*page_size);
         REQUIRE(hm.capacity() == 1*page_size);
@@ -53,10 +52,123 @@ TEST_CASE("Heap Manager should correctly expand heap by incremental aligned byte
         auto* firstAllocBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
         auto* secondFreeBlock = static_cast<heep::HeapBlock*>(firstAllocBlock->getEndAddr());
 
-        hm.print();
-
         REQUIRE(firstFreeBlock->getNext() == secondFreeBlock);
         REQUIRE(secondFreeBlock->getPrev() == firstFreeBlock);
         REQUIRE(secondFreeBlock->getNext() == nullptr);
+    }
+}
+
+TEST_CASE("Heap Manager should correctly coalesce on deallocate", "[heap_manager]") {
+    using namespace heep::helpers;
+    heep::HeapManager hm{1*page_size};
+
+    SECTION("Deallocating surrounded alloc and empty free list should not coalesce") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
+        REQUIRE(hm.getFreeSize() == 0);
+//        hm.print();
+
+        auto* ptr2Block = static_cast<heep::HeapBlock *>(get_block_start_address_from_data(ptr2));
+        size_t ptr2Size = ptr2Block->getSize();
+        hm.deallocate(ptr2);
+
+        REQUIRE(hm.getFreeSize() == ptr2Size);
+        REQUIRE(ptr2Block->getFree());
+        REQUIRE(ptr2Block->getPrev() == nullptr);
+        REQUIRE(ptr2Block->getNext() == nullptr);
+        REQUIRE(hm.getFreeHead() == ptr2Block);
+        REQUIRE(hm.getFreeTail() == ptr2Block);
+    }
+
+    SECTION("Deallocating surrounded alloc and non-empty free list should not coalesce") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
+        auto* ptr4 = hm.allocate<heep::finders::BestFit>(1);
+
+        hm.print();
+
+        auto* ptr2Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
+        auto* ptrBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr));
+        auto* firstFreeBlock = static_cast<heep::HeapBlock*>(ptrBlock->getEndAddr());
+        size_t ptr2Size = ptr2Block->getSize();
+        hm.deallocate(ptr2);
+
+        REQUIRE(ptr2Block->getFree());
+        REQUIRE(ptr2Block->getPrev() == nullptr);
+        REQUIRE(ptr2Block->getNext() == firstFreeBlock);
+        REQUIRE(hm.getFreeHead() == ptr2Block);
+        REQUIRE(hm.getFreeTail() == ptrBlock->getEndAddr());
+        REQUIRE(firstFreeBlock->getPrev() == ptr2Block);
+    }
+
+    SECTION("Deallocating alloc with right free coalesce right only") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
+
+
+        auto* ptrBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr));
+        auto* ptr2Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
+        size_t expectedSize = ptrBlock->getSize() + ptr2Block->getSize();
+
+        hm.deallocate(ptr);
+        hm.deallocate(ptr2);
+
+        REQUIRE(ptr2Block->getSize() == expectedSize);
+        REQUIRE(ptr2Block->getFree());
+        REQUIRE(ptr2Block->getPrev() == nullptr);
+        REQUIRE(ptr2Block->getNext() == nullptr);
+        REQUIRE(hm.getFreeHead() == ptr2Block);
+        REQUIRE(hm.getFreeTail() == ptr2Block);
+        REQUIRE(hm.getFreeSize() == expectedSize);
+    }
+
+    SECTION("Deallocating alloc with left free coalesce left only") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
+
+
+        auto* ptr3Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr3));
+        auto* ptr2Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
+        size_t expectedSize = ptr3Block->getSize() + ptr2Block->getSize();
+
+        hm.deallocate(ptr3);
+        hm.deallocate(ptr2);
+
+        REQUIRE(ptr3Block->getSize() == expectedSize);
+        REQUIRE(ptr3Block->getFree());
+        REQUIRE(ptr3Block->getPrev() == nullptr);
+        REQUIRE(ptr3Block->getNext() == nullptr);
+        REQUIRE(hm.getFreeHead() == ptr3Block);
+        REQUIRE(hm.getFreeTail() == ptr3Block);
+        REQUIRE(hm.getFreeSize() == expectedSize);
+    }
+
+    SECTION("Deallocating alloc with both free coalesce both") {
+        auto* ptr = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr2 = hm.allocate<heep::finders::BestFit>(1300);
+        auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
+
+
+        auto* ptr3Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr3));
+        auto* ptr2Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
+        auto* ptrBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr));
+        size_t expectedSize = ptr3Block->getSize() + ptr2Block->getSize() + ptrBlock->getSize();
+
+
+        hm.deallocate(ptr);
+        hm.deallocate(ptr3);
+        hm.deallocate(ptr2);
+
+        REQUIRE(ptr3Block->getSize() == expectedSize);
+        REQUIRE(ptr3Block->getFree());
+        REQUIRE(ptr3Block->getPrev() == nullptr);
+        REQUIRE(ptr3Block->getNext() == nullptr);
+        REQUIRE(hm.getFreeHead() == ptr3Block);
+        REQUIRE(hm.getFreeTail() == ptr3Block);
+        REQUIRE(hm.getFreeSize() == expectedSize);
     }
 }

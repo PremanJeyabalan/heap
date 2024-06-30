@@ -95,6 +95,7 @@ namespace heep {
         HeapBlock* newBlockPrev{};
 
         if (!coalesceLeft) {
+            //new block is being inserted into the list
             auto [prev, next] = [&](){
                 if (!coalesceRight)
                     return findPrevAndNextFree(newBlockStart);
@@ -103,14 +104,17 @@ namespace heep {
                 return std::make_pair(entryNext.value()->getPrev(), entryNext.value()->getNext());
             }();
 
-
             newBlockPrev = prev;
             if (newBlockPrev)
                 *(newBlockPrev->next()) = newBlockStart;
+            else
+                m_head = newBlockStart;
 
             newBlockNext = next;
             if (newBlockNext)
                 *(newBlockNext->prev()) = newBlockStart;
+            else
+                m_tail = newBlockStart;
 
         } else {
             auto entryPrevVal = entryPrev.value();
@@ -123,6 +127,8 @@ namespace heep {
                 newBlockNext = entryNextVal->getNext();
                 if (newBlockNext)
                     *(newBlockNext->prev()) = newBlockStart;
+                else
+                    m_tail = newBlockStart;
             } else {
                 newBlockSize += entryPrevVal->getSize();
                 newBlockNext = entryPrevVal->getNext();

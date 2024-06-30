@@ -35,6 +35,10 @@ namespace heep {
         [[nodiscard]] size_t capacity() const;
         [[nodiscard]] size_t getFreeSize() const;
 
+    public:
+        [[nodiscard]] HeapBlock* getFreeHead() const;
+        [[nodiscard]] HeapBlock* getFreeTail() const;
+
     private:
         void* reserve(size_t bytes);
         HeapBlock* expandHeap(size_t bytes);

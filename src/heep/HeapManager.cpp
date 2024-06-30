@@ -73,4 +73,12 @@ namespace heep {
                 .resizeBlock(fListTail, fListTail->getSize() + incrCapacity)
                 .value();
     }
+
+    HeapBlock *HeapManager::getFreeHead() const {
+        return m_freeList.getHead();
+    }
+
+    HeapBlock *HeapManager::getFreeTail() const {
+        return m_freeList.getTail();
+    }
 }
