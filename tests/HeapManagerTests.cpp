@@ -87,7 +87,6 @@ TEST_CASE("Heap Manager should correctly coalesce on deallocate", "[heap_manager
         auto* ptr3 = hm.allocate<heep::finders::BestFit>(1328);
         auto* ptr4 = hm.allocate<heep::finders::BestFit>(1);
 
-        hm.print();
 
         auto* ptr2Block = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr2));
         auto* ptrBlock = static_cast<heep::HeapBlock*>(get_block_start_address_from_data(ptr));

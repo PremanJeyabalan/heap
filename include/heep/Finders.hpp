@@ -10,7 +10,7 @@
 
 namespace heep::finders {
     struct BestFit {
-        std::optional<HeapBlock*> operator()(FreeList& fList, size_t size) {
+        std::optional<HeapBlock*> operator()(const FreeList& fList, size_t size) const {
             HeapBlock* curr = fList.getHead();
             if (curr == nullptr)
                 return std::nullopt;
@@ -32,7 +32,7 @@ namespace heep::finders {
     };
 
     struct FirstFit {
-        std::optional<HeapBlock*> operator()(FreeList& fList, size_t size) {
+        std::optional<HeapBlock*> operator()(const FreeList& fList, size_t size) const {
             HeapBlock* curr = fList.getHead();
 
             while (curr != nullptr) {

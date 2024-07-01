@@ -18,3 +18,7 @@ target_link_libraries(testHeapFreeList PRIVATE
 add_executable(testHeapManager HeapManagerTests.cpp)
 target_link_libraries(testHeapManager PRIVATE
         heep vmem Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)
+
+add_executable(testHeapFinder HeapFinderTests.cpp)
+target_link_libraries(testHeapFinder PRIVATE
+        heep vmem Catch2::Catch2 Catch2::Catch2WithMain fmt::fmt)

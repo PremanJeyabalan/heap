@@ -53,7 +53,7 @@ namespace heep {
     };
 
     template<typename Finder>
-    void* HeapManager::allocate(size_t bytes) {
+    [[nodiscard]] void* HeapManager::allocate(size_t bytes) {
         size_t alignedSize = helpers::get_aligned_block(bytes);
 
         std::optional<HeapBlock*> victimOpt = Finder()(m_freeList, alignedSize);
