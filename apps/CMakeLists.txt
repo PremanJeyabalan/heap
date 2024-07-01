@@ -1,5 +1,5 @@
 add_executable(heap_runner
-        heap_runner.c)
+        HeapRunner.cpp)
 
-target_link_libraries(heap_runner PRIVATE
-        FirstFitHeap)
+target_link_libraries(heap_runner
+        PRIVATE heep)

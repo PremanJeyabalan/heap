@@ -1,11 +1,9 @@
-add_executable(EqualSizeFFBenchmark
-        equal_size_benchmark.c)
-target_link_libraries(EqualSizeFFBenchmark PRIVATE
-        FirstFitHeap)
-target_compile_definitions(EqualSizeFFBenchmark PRIVATE _GNU_SOURCE)
+set(BENCHMARK_ENABLE_TESTING off)
+FetchContent_Declare(gbench
+        GIT_REPOSITORY https://github.com/google/benchmark.git
+        GIT_TAG main)
+FetchContent_MakeAvailable(gbench)
 
-add_executable(EqualSizeBFBenchmark
-        equal_size_benchmark.c)
-target_link_libraries(EqualSizeBFBenchmark PRIVATE
-        BestFitHeap)
-target_compile_definitions(EqualSizeBFBenchmark PRIVATE _GNU_SOURCE)
+add_executable(equalSizeBenchmark EqualSizeBenchmark.cpp)
+target_link_libraries(equalSizeBenchmark PRIVATE
+    heep vmem benchmark::benchmark benchmark::benchmark_main fmt::fmt)
