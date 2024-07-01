@@ -11,7 +11,7 @@
 
 namespace heep::vmem {
     static const uint64_t page_size = 4096;
-    static constexpr uint64_t max_heap_size = page_size * 1000;
+    static constexpr uint64_t max_heap_size = page_size * 10000;
 
     class VirtualStaticHeap {
     public:

@@ -101,6 +101,14 @@ namespace heep {
         m_sizeFreePack = getSize() | (uint32_t) free;
     }
 
+    void HeapBlock::setPrev(HeapBlock* prev) {
+        m_prev = prev;
+    }
+
+    void HeapBlock::setNext(HeapBlock* next) {
+        m_next = next;
+    }
+
     void HeapBlock::setPack(uint32_t size, bool pack) {
         m_sizeFreePack = helpers::size_and_free_to_pack(size, pack);
     }

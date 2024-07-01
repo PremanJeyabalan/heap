@@ -9,15 +9,17 @@
 
 namespace heep {
     FreeList::FreeList(void *memory, size_t size) :
-    m_head{static_cast<HeapBlock*>(memory)}, m_tail{m_head}, m_size{size}
+    m_head{HeapBlock::CreateFreeBlockAtMemory(memory, helpers::size_and_free_to_pack(size, true), nullptr, nullptr)}, m_tail{m_head}, m_size{size}
     {
         m_head->init(helpers::size_and_free_to_pack(size, true), nullptr, nullptr);
     }
 
     HeapBlock *FreeList::pushBack(void *memory, size_t size) {
+//        fmt::print("Pushing back for {} with tail {}\n", memory, (void*)m_tail);
         auto* block = HeapBlock::CreateFreeBlockAtMemory(memory, size, m_tail, nullptr);
+//        fmt::print("Pushing back for {} with tail {} , now has prev {}\n", memory, (void*)m_tail, (void*)(block->getPrev()));
         if (m_tail != nullptr)
-            *(m_tail->next()) = block;
+            m_tail->setNext(block);
         else
             m_head = block;
 
@@ -29,7 +31,7 @@ namespace heep {
     HeapBlock *FreeList::pushFront(void *memory, size_t size) {
         auto* block = HeapBlock::CreateFreeBlockAtMemory(memory, size, nullptr, m_head);
         if (m_head != nullptr)
-            *(m_head->prev()) = block;
+            m_head->setPrev(block);
 
         m_head = block;
         m_size += size;
@@ -43,7 +45,7 @@ namespace heep {
         m_size -= m_tail->getSize();
         m_tail = m_tail->getPrev();
         if (m_tail != nullptr)
-            *(m_tail->next()) = nullptr;
+            m_tail->setNext(nullptr);
         else
             m_head = nullptr;
     }
@@ -55,7 +57,7 @@ namespace heep {
         m_size -= m_head->getSize();
         m_head = m_head->getNext();
         if (m_head != nullptr)
-            *(m_head->prev()) = nullptr;
+            m_head->setPrev(nullptr);
         else
             m_tail = nullptr;
     }
@@ -73,8 +75,8 @@ namespace heep {
             auto* next = block->getNext();
             m_size -= block->getSize();
 
-            *(prev->next()) = next;
-            *(next->prev()) = prev;
+            prev->setNext(next);
+            next->setPrev(prev);
         }
     }
 
@@ -96,25 +98,40 @@ namespace heep {
 
         if (!coalesceLeft) {
             //new block is being inserted into the list
-            auto [prev, next] = [&](){
+            auto [prev, next] = [&]() -> std::pair<HeapBlock*, HeapBlock*> {
                 if (!coalesceRight)
                     return findPrevAndNextFree(newBlockStart);
 
+//                fmt::print("Right block at address: {}\n", (void*)entryNext.value());
+
+                auto* nextVal = entryNext.value();
+//                fmt::print("Prev of right block: {}\n", (void*)nextVal->getPrev());
+//                fmt::print("Head of free list: {}\n", (void*)m_head);
+//                fmt::print("Next of head of free list: {}\n", (void*)m_head->getNext());
+
                 newBlockSize +=  entryNext.value()->getSize();
-                return std::make_pair(entryNext.value()->getPrev(), entryNext.value()->getNext());
+                return std::make_pair<HeapBlock*, HeapBlock*>(entryNext.value()->getPrev(), entryNext.value()->getNext());
             }();
 
             newBlockPrev = prev;
             if (newBlockPrev)
-                *(newBlockPrev->next()) = newBlockStart;
-            else
+                newBlockPrev->setNext(newBlockStart);
+            else {
+                if (m_head)
+                    m_head->setPrev(newBlockStart);
+
                 m_head = newBlockStart;
+            }
 
             newBlockNext = next;
             if (newBlockNext)
-                *(newBlockNext->prev()) = newBlockStart;
-            else
+                newBlockNext->setPrev(newBlockStart);
+            else {
+                if (m_tail)
+                    m_tail->setNext(newBlockStart);
+
                 m_tail = newBlockStart;
+            }
 
         } else {
             auto entryPrevVal = entryPrev.value();
@@ -126,7 +143,8 @@ namespace heep {
                 newBlockSize += entryNextVal->getSize() + entryPrevVal->getSize();
                 newBlockNext = entryNextVal->getNext();
                 if (newBlockNext)
-                    *(newBlockNext->prev()) = newBlockStart;
+                    newBlockNext->setPrev(newBlockStart);
+//                    *(newBlockNext->prev()) = newBlockStart;
                 else
                     m_tail = newBlockStart;
             } else {
@@ -145,8 +163,7 @@ namespace heep {
         }
 
         size_t originalSize = block->getSize();
-        block->setSize(newSize);
-        block->setFooter();
+        block = HeapBlock::CreateFreeBlockAtMemory(block, newSize, block->getPrev(), block->getNext());
         m_size -= (originalSize - newSize);
         return block;
     }

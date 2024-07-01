@@ -40,6 +40,8 @@ namespace heep {
     public:
         void setSize(uint32_t size);
         void setFree(bool free);
+        void setPrev(HeapBlock*);
+        void setNext(HeapBlock*);
         HeapBlock** next();
         HeapBlock** prev();
         void setPack(uint32_t size, bool pack);

@@ -17,9 +17,11 @@ namespace heep {
 
     void HeapManager::deallocate(void *ptr) {
         void* startAddr = helpers::get_block_start_address_from_data(ptr);
+//        fmt::print("Dealloc for start {}\n", startAddr);
         auto* block = static_cast<HeapBlock*>(startAddr);
         block->setFree(true);
-        m_freeList.insert(startAddr, block->getSize(), m_memoryAddr, helpers::get_block_advanced_by_size(m_memoryAddr, m_capacity));
+//        fmt::print("Dealloc for block {}\n", (void*)block);
+        m_freeList.insert(block, block->getSize(), m_memoryAddr, helpers::get_block_advanced_by_size(m_memoryAddr, m_capacity));
         m_size -= block->getSize();
     }
 
@@ -66,12 +68,20 @@ namespace heep {
         size_t incrCapacity = helpers::get_aligned_page(bytes);
         void* newFreeBlock = reserve(incrCapacity);
 
+//        fmt::print("Expanding heap with new block: {}\n", (void*)newFreeBlock);
+
         HeapBlock* fListTail = m_freeList.getTail();
-        return (fListTail == nullptr || fListTail->getEndAddr() != newFreeBlock) ?
-            m_freeList.pushBack(newFreeBlock, incrCapacity) :
-            m_freeList
+        if (fListTail == nullptr || fListTail->getEndAddr() != newFreeBlock) {
+//            fmt::print("Expanded with no coalesce...: {}\n", (void*)newFreeBlock);
+            return m_freeList.pushBack(newFreeBlock, incrCapacity);
+        } else {
+
+//            fmt::print("Expanded with coalesce...: {}\n", (void*)newFreeBlock);
+
+            return m_freeList
                 .resizeBlock(fListTail, fListTail->getSize() + incrCapacity)
                 .value();
+        }
     }
 
     HeapBlock *HeapManager::getFreeHead() const {
