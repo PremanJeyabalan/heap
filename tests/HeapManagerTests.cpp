@@ -171,3 +171,65 @@ TEST_CASE("Heap Manager should correctly coalesce on deallocate", "[heap_manager
         REQUIRE(hm.getFreeSize() == expectedSize);
     }
 }
+
+TEST_CASE("Heap manager should correctly store pointers", "[heap_manager]") {
+    using namespace heep::helpers;
+    heep::HeapManager hm{1*page_size};
+
+    auto allocTest = [&]<typename Finder>(Finder f) -> std::pair<size_t, size_t> {
+        size_t runningSum{};
+        size_t expectedSum{};
+        int* array[10]{};
+        int sizes1[] = {4, 16, 8, 32, 7, 256, 23, 4, 10, 32};
+
+        auto allocSizeArray = [&](int size, int** arr, int index){
+            expectedSum += size * size;
+            arr[index] = static_cast<int*>(hm.allocate<Finder>(size * sizeof(int)));
+            for (int i = 0; i < size; i++) {
+                arr[index][i] = size;
+            }
+            for (int i = 0; i < size; i++) {
+                runningSum += arr[index][i];
+            }
+        };
+
+        for (int i = 0; i < 4; i++)
+            allocSizeArray(sizes1[i], array, i);
+
+        hm.deallocate(array[0]);
+        hm.deallocate(array[2]);
+
+        for (int i = 4; i < 6; i++)
+            allocSizeArray(sizes1[i], array, i);
+
+        hm.deallocate(array[5]);
+        hm.deallocate(array[1]);
+        hm.deallocate(array[3]);
+
+
+        for (int i = 6; i < 8; i++)
+            allocSizeArray(sizes1[i], array, i);
+
+        hm.deallocate(array[4]);
+
+        for (int i = 8; i < 10; i++)
+            allocSizeArray(sizes1[i], array, i);
+
+        hm.deallocate(array[6]);
+        hm.deallocate(array[7]);
+        hm.deallocate(array[8]);
+        hm.deallocate(array[9]);
+
+        return std::make_pair(runningSum, expectedSum);
+    };
+
+    SECTION("Different sized allocs should not corrupt stored data with best fit") {
+        auto [calcBFSum, expectedBFSum] = allocTest(heep::finders::BestFit{});
+        REQUIRE(calcBFSum == expectedBFSum);
+    }
+
+    SECTION("Different sized allocs should not corrupt stored data with first fit") {
+        auto [calcFFSum, expectedFFSum] = allocTest(heep::finders::FirstFit{});
+        REQUIRE(calcFFSum == expectedFFSum);
+    }
+}

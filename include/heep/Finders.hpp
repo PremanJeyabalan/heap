@@ -15,12 +15,13 @@ namespace heep::finders {
             if (curr == nullptr)
                 return std::nullopt;
 
+            const size_t minFreeSize = size + 32;
             HeapBlock* res{};
             while (curr != nullptr) {
                 size_t currSize = curr->getSize();
                 if (currSize == size)
                     return curr;
-                else if (currSize > size && (res == nullptr || currSize < res->getSize()))
+                else if (currSize >= minFreeSize && (res == nullptr || currSize < res->getSize()))
                     res = curr;
 
                 curr = curr->getNext();
