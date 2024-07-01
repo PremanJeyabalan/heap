@@ -16,29 +16,9 @@ static void BM_EqualAlloc_BF(benchmark::State& state) {
 
     heep::HeapManager hm{heep::helpers::page_size};
 
-    for (int i = 0; i < num_items; i++) {
-        array[i] = static_cast<int*>(hm.allocate<heep::finders::BestFit>(alloc_size));
-        spacing_array[i] = static_cast<int*>(hm.allocate<heep::finders::BestFit>(alloc_size));
-    }
-
-    for (int i = 0; i < num_items; i++) {
-        hm.deallocate(array[i]);
-    }
-
-    while (state.KeepRunning()) {
-        for (int i = 0; i < num_items; i++) {
-            for (int j = 0; j < diff; j++) {
-                benchmark::DoNotOptimize(array[j] = static_cast<int*>(hm.allocate<heep::finders::BestFit>(alloc_size)));
-            }
-
-            for (int j = diff; j < num_items; j++) {
-                benchmark::DoNotOptimize(array[j] = static_cast<int*>(hm.allocate<heep::finders::BestFit>(alloc_size)));
-                hm.deallocate(array[j-diff]);
-            }
-
-            for (int j = num_items - diff; j < num_items; j++)
-                hm.deallocate(array[j]);
-        }
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(array[rand() % 1000] = static_cast<int *>(hm.allocate<heep::finders::BestFit>(
+                alloc_size)));
     }
 
     state.SetBytesProcessed(long{state.iterations()} * long{alloc_size});
@@ -46,6 +26,6 @@ static void BM_EqualAlloc_BF(benchmark::State& state) {
 }
 
 BENCHMARK(BM_EqualAlloc_BF)
-    ->DenseRange(13,26)
+    ->DenseRange(4,10)
     ->Unit(benchmark::kMicrosecond)
     ->ReportAggregatesOnly(true);
