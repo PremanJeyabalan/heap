@@ -7,9 +7,10 @@
 
 #include <optional>
 #include "HeapBlock.hpp"
+#include "IFreeList.hpp"
 
 namespace heep {
-    class FreeList {
+    class FreeList : public IFreeList<FreeList> {
     public:
         FreeList()=default;
         FreeList(void* memory, size_t capacity);

@@ -1,11 +1,16 @@
 set(HEADER_LIST_VMEM
-        ${PROJECT_SOURCE_DIR}/include/vmem/VirtualStaticHeap.hpp)
+        ${PROJECT_SOURCE_DIR}/include/vmem/VirtualStaticHeap.hpp
+        ../include/vmem/IVirtualStaticHeap.hpp)
+
 
 set(HEADER_LIST_HEEP
         ${PROJECT_SOURCE_DIR}/include/heep/HeapBlock.hpp
         ${PROJECT_SOURCE_DIR}/include/heep/FreeList.hpp
         ${PROJECT_SOURCE_DIR}/include/heep/HeapManager.hpp
-        ${PROJECT_SOURCE_DIR}/include/heep/Helpers.hpp ../include/heep/Finders.hpp)
+        ${PROJECT_SOURCE_DIR}/include/heep/Helpers.hpp
+        ../include/heep/Finders.hpp
+        ../include/heep/IHeapManager.hpp
+        ../include/heep/IFreeList.hpp ../include/heep/IFinders.hpp)
 
 set(HEADER_LIST
         ${HEADER_LIST_VMEM}

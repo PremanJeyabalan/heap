@@ -12,9 +12,11 @@
 #include "Helpers.hpp"
 #include "vmem/VirtualStaticHeap.hpp"
 
+#include "IHeapManager.hpp"
+
 namespace heep {
 
-    class HeapManager {
+    class HeapManager : public IHeapManager<HeapManager, FreeList, vmem::VirtualStaticHeap> {
     public:
         explicit HeapManager(size_t bytes);
 
@@ -45,11 +47,9 @@ namespace heep {
 
 
     private:
-        vmem::VirtualStaticHeap m_heap;
         size_t m_size;
         size_t m_capacity;
         void* m_memoryAddr;
-        FreeList m_freeList;
     };
 
     template<typename Finder>

@@ -8,9 +8,14 @@
 #include "heep/HeapBlock.hpp"
 #include "heep/FreeList.hpp"
 
+#include "IFinders.hpp"
+#include "IFreeList.hpp"
+
 namespace heep::finders {
-    struct BestFit {
-        std::optional<HeapBlock*> operator()(const FreeList& fList, size_t size) const {
+
+    template<FreeListConcept FList>
+    struct BestFit : public IFinder<BestFit<FList>, FList> {
+        std::optional<HeapBlock*> operator()(const FList& fList, size_t size) const {
             HeapBlock* curr = fList.getHead();
             if (curr == nullptr)
                 return std::nullopt;
@@ -32,8 +37,9 @@ namespace heep::finders {
         }
     };
 
-    struct FirstFit {
-        std::optional<HeapBlock*> operator()(const FreeList& fList, size_t size) const {
+    template<FreeListConcept FList>
+    struct FirstFit : public IFinder<FirstFit<FList>, FList> {
+        std::optional<HeapBlock*> operator()(const FList& fList, size_t size) const {
             HeapBlock* curr = fList.getHead();
 
             while (curr != nullptr) {

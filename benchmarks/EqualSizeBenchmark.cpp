@@ -14,9 +14,11 @@ static void BM_EqualAlloc_BF(benchmark::State& state) {
     int* spacing_array[num_items]{};
     auto alloc_size = 1 << state.range(0);
 
-    heep::HeapManager hm{heep::helpers::page_size};
 
     for (auto _ : state) {
+        state.PauseTiming();
+        heep::HeapManager hm{heep::helpers::page_size};
+        state.ResumeTiming();
         benchmark::DoNotOptimize(array[rand() % 1000] = static_cast<int *>(hm.allocate<heep::finders::BestFit>(
                 alloc_size)));
     }
@@ -26,6 +28,6 @@ static void BM_EqualAlloc_BF(benchmark::State& state) {
 }
 
 BENCHMARK(BM_EqualAlloc_BF)
-    ->DenseRange(4,10)
-    ->Unit(benchmark::kMicrosecond)
+    ->DenseRange(12,26)
+    ->Unit(benchmark::kNanosecond)
     ->ReportAggregatesOnly(true);

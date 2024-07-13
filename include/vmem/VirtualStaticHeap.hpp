@@ -9,11 +9,13 @@
 #include <cstdlib>
 #include <cstdint>
 
+#include "IVirtualStaticHeap.hpp"
+
 namespace heep::vmem {
     static constexpr uint64_t page_size = 4096;
-    static constexpr uint64_t max_heap_size = page_size * 1000;
+    static constexpr uint64_t max_heap_size = page_size * 100000;
 
-    class VirtualStaticHeap {
+    class VirtualStaticHeap : public IVirtualStaticHeap<VirtualStaticHeap> {
     public:
         VirtualStaticHeap();
 
